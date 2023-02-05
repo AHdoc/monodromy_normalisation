@@ -35,37 +35,4 @@ std::ostream& operator<<(std::ostream& os, const Tuple<G>& g){
 	return os<<g.print();
 }
 
-
-
-template<typename G>
-struct iteratedTuple{
-	vector<struct iteratedTuple*> e;
-	G val;
-	int h() const{
-		int maxh=0;
-		for(auto ei:e) maxh=max(maxh,ei.h());
-		return maxh;
-	}
-	G ev() const{
-		if(e.empty()) return val;
-		else{
-			G ret;
-			ret.be_identity();
-			for(auto ei:e) ret=ret*ei.ev();
-			return ret;
-		}
-	}
-	int len() const{
-		return e.size();
-	}
-	void init(G val0){
-		e.clear();
-		val=val0;
-	}
-	string print(){
-		
-	}
-};
-
-
 #endif

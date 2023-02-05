@@ -11,6 +11,7 @@
 #include"myassert.h"
 #include"group.h" 
 #include"tuple.h"
+#include"iteratedtuple.h"
 
 using namespace std;
 
@@ -32,7 +33,7 @@ void test_Ga3b2(){
 }
 
 void test_tuple(){
-	cout<<"This is a quick test for struct Tuple and iteratedTuple.\n";
+	cout<<"This is a quick test for structs Tuple and iteratedTuple.\n";
 	int n;
 	cin>>n;
 	vector<Ga3b2> gvec;
@@ -45,9 +46,14 @@ void test_tuple(){
 	Tuple<Ga3b2> g;
 	g.init(gvec);
 	cout<<g<<"\n";
+
+	iteratedTuple<Ga3b2> it_g;
+	it_g.init(g);
+	cout<<"it_g="<<it_g<<"\n";
+	cerr<<"it_g.h()="<<it_g.h()<<",it_g.ev()="<<it_g.ev()<<"\n";
 }
 
 int main(){
 	//test_Ga3b2();
-	test_tuple();
+	//test_tuple();
 }
