@@ -13,12 +13,15 @@ using namespace std;
 template<typename G>
 struct Tuple{
 	vector<G> e;
+	
 	int len() const{
 		return e.size();
 	}
+	
 	void init(vector<G> e0){
 		e=e0;
 	}
+	
 	string print() const{
 		string s="(";
 		for(int i=0;i<len();i++){
@@ -27,6 +30,17 @@ struct Tuple{
 		}
 		s+=")";
 		return s;
+	}
+
+	void Elementary_transformation(int i,int epsilon){
+		myassert(1<=i && i<=len()-1 && (epsilon==1 || epsilon==-1),"a proper Elementary transformation");
+		if(epsilon==1){
+			e[i-1].conjugation(e[i]);
+			swap(e[i-1],e[i]);
+		}else{
+			e[i].conjugation(e[i-1].inv());
+			swap(e[i-1],e[i]);
+		}
 	}
 };
 

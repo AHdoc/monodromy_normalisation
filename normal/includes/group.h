@@ -45,6 +45,10 @@ SL2Z get(int a,int b,int c,int d){
 
 struct Ga3b2{
 	vector<string> e;
+
+	Ga3b2(vector<string> e0): e(e0){}
+	Ga3b2(): e({}){}
+
 	void init(string s){
 		e.clear();
 		if(s!="1"){
@@ -67,9 +71,11 @@ struct Ga3b2{
 			}
 		}
 	}
+	
 	void be_identity(){
 		init("1");
 	}
+	
 	Ga3b2 inv(){
 		Ga3b2 g;
 		g.e.clear();
@@ -81,9 +87,46 @@ struct Ga3b2{
 		myassert(e.size()==g.len(),"g.len == g.inv().len()");
 		return g;
 	}
+	
+	friend bool operator==(const Ga3b2 g1, const Ga3b2 g2){
+		return g1.e==g2.e;
+	}
+	
+	friend Ga3b2 operator *(const Ga3b2 g1,const Ga3b2 g2){
+		int i=g1.len()-1,j=0;
+		string r="1";
+		while(i>=0 && j<g2.len()){
+			if(g1.e[i]=="b" || g2.e[j]=="b"){
+				if(g1.e[i]=="b" && g2.e[j]=="b"){
+					--i; ++j;
+				}else break;
+			}else{
+				if(g1.e[i]!=g2.e[j]){
+					--i; ++j;
+				}else{
+					if(g1.e[i]=="a") r="a^2";
+					else r="a";
+					--i; ++j;
+					break;
+				}
+			}
+		}
+		Ga3b2 g3;
+		g3.e.clear();
+		for(int k=0;k<=i;k++) g3.e.push_back(g1.e[k]);
+		if(r!="1") g3.e.push_back(r);
+		for(int k=j;k<g2.len();k++) g3.e.push_back(g2.e[k]);
+		return g3;
+	}
+
+	void conjugation(Ga3b2 v){ // take the conjugation of this with v
+		*this = v.inv() * (*this) * v;
+	}
+
 	int len() const{
 		return e.size();
 	}
+	
 	string print() const{
 		if(e.size()==0) return "1";
 		else{
@@ -101,35 +144,8 @@ istream& operator>>(istream& is, Ga3b2& g){
     return is;
 }
 
-std::ostream& operator<<(std::ostream& os, const Ga3b2& g){
+ostream& operator<<(ostream& os, const Ga3b2& g){
 	return os<<g.print();
-}
-
-Ga3b2 operator *(const Ga3b2 g1,const Ga3b2 g2){
-	int i=g1.len()-1,j=0;
-	string r="1";
-	while(i>=0 && j<g2.len()){
-		if(g1.e[i]=="b" || g2.e[j]=="b"){
-			if(g1.e[i]=="b" && g2.e[j]=="b"){
-				--i; ++j;
-			}else break;
-		}else{
-			if(g1.e[i]!=g2.e[j]){
-				--i; ++j;
-			}else{
-				if(g1.e[i]=="a") r="a^2";
-				else r="a";
-				--i; ++j;
-				break;
-			}
-		}
-	}
-	Ga3b2 g3;
-	g3.e.clear();
-	for(int k=0;k<=i;k++) g3.e.push_back(g1.e[k]);
-	if(r!="1") g3.e.push_back(r);
-	for(int k=j;k<g2.len();k++) g3.e.push_back(g2.e[k]);
-	return g3;
 }
 
 Ga3b2 pow(const Ga3b2 g,int n){
