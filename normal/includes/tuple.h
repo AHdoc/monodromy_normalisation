@@ -18,6 +18,10 @@ struct Tuple{
 		return e.size();
 	}
 	
+	void clear(){
+		e.clear();
+	}
+
 	void init(vector<G> e0){
 		e=e0;
 	}
@@ -47,6 +51,19 @@ struct Tuple{
 template<typename G>
 std::ostream& operator<<(std::ostream& os, const Tuple<G>& g){
 	return os<<g.print();
+}
+
+template<typename G>
+bool operator==(const Tuple<G> g1, const Tuple<G> g2){
+	return g1.e==g2.e;
+}
+
+template<typename G>
+Tuple<G> bullet(Tuple<G> g1,Tuple<G> g2){
+	Tuple<G> g;
+	g.e=g1.e;
+	g.e.insert(g.e.end(),g2.e.begin(),g2.e.end());
+	return g;
 }
 
 #endif

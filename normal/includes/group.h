@@ -127,6 +127,10 @@ struct Ga3b2{
 		return e.size();
 	}
 	
+	bool is_power_of_a() const{
+		return len()==1 && (e[0]=="a" || e[0]=="a^2");
+	}
+
 	string print() const{
 		if(e.size()==0) return "1";
 		else{
