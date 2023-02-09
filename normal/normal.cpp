@@ -27,7 +27,7 @@ int main(){
 	//test_Ga3b2();
 	//test_tuple();
 	//test_CR();
-	test_solve_short(true);
+	test_solve_short(false);
 }
 
 // a^2b ba^2 a^2ba^2 a^2b ba^2 ba^2 a^2b ba^2

@@ -36,7 +36,8 @@ struct Tuple{
 			s+=e[i].print();
 		}
 		s+=")";
-		return s;
+		if(s.size()<=130) return s;
+		else              return string(s,0,130)+"...";
 	}
 
 	void Elementary_transformation(int i,int epsilon){

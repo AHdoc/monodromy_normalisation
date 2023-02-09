@@ -215,6 +215,9 @@ bool find_pair(CR<Ga3b2>* M,Tuple<Ga3b2>* g_non_inverse_free,list<vector<int>>* 
 /*--s.t. each component of (h1,...,hm) is short--*/
 /*--return mp(h,F)--*/
 pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool details,string namestr){
+	cout<<"+====start the shorten_induction on "+namestr+" (use h to denote the tuple in this process)===\n";
+	cout<<"| h="<<g_input<<"\n";
+
 	CR<Ga3b2> M;
 	Tuple<Ga3b2> g_non_inverse_free;
 	list<vector<int>> F;
@@ -224,10 +227,10 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 	F.clear();
 
 	for(int t=1;;t++){
-		if(details) cout<<"===the "<<t<<"-th induction on "<<namestr<<" starts===\n";
-		if(details) cout<<"h="<<M.h<<"\n";
-		if(details) cout<<"H="<<M.H<<"\n";
-		if(details) cout<<"g_non_inverse_free="<<g_non_inverse_free<<"\n";
+		if(details) cout<<"| ===the "<<t<<"-th induction on "<<namestr<<" starts===\n";
+		if(details) cout<<"| h="<<M.h<<"\n";
+		if(details) cout<<"| H="<<M.H<<"\n";
+		if(details) cout<<"| g_non_inverse_free="<<g_non_inverse_free<<"\n";
 
 		myassert(M.F.empty(),"F is empty");
 
@@ -240,9 +243,9 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 			if(Operation4(&M))              continue;
 			break;
 		}
-		if(details) cout<<"---the "<<t<<"-th induction is done---\n";
-		if(details) cout<<"h="<<M.h<<"\n";
-		if(details) cout<<"H="<<M.H<<"\n";
+		if(details) cout<<"| ---the "<<t<<"-th induction is done---\n";
+		if(details) cout<<"| h="<<M.h<<"\n";
+		if(details) cout<<"| H="<<M.H<<"\n";
 
 		/***********/
 		
@@ -251,9 +254,9 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 			if(k==-1) break;
 			while(Operation3(&M,k,k)) continue;
 		}
-		if(details) cout<<"---restoration is done---\n";
-		if(details) cout<<"h="<<M.h<<"\n";
-		if(details) cout<<"H="<<M.H<<"\n";
+		if(details) cout<<"| ---restoration is done---\n";
+		if(details) cout<<"| h="<<M.h<<"\n";
+		if(details) cout<<"| H="<<M.H<<"\n";
 
 		/***********/
 
@@ -270,29 +273,28 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 	}
 	F.insert(F.end(),M.F.begin(),M.F.end()); M.F.clear();
 
-	cout<<"===conclusion===\n";
-	cout<<"h="<<M.h<<"\n";
-	cout<<"g_non_inverse_free="<<g_non_inverse_free<<"\n";
+	cout<<"| ===conclusion after shorten_induction===\n";
+	cout<<"| h="<<M.h<<"\n";
+	cout<<"| g_non_inverse_free="<<g_non_inverse_free<<"\n";
 
 	/***********/
 
-	if(details) cout<<"---check elementary transformations in F---\n";
-	if(details) cout<<"F.size()="<<F.size()<<"\n";
+	if(details) cout<<"| ---check elementary transformations in F---\n";
+	if(details) cout<<"| F.size()="<<F.size()<<"\n";
 	Tuple<Ga3b2> g=g_input;
 	for(auto it:F){
 		int i=it[2],epsilon=it[3];
 		g.Elementary_transformation(i,epsilon);
 	}
 	myassert(g==bullet(M.h,g_non_inverse_free),"g==h dot g_non_inverse_free");
-	if(details) cout<<"resulting g=h bullet g_non_inverse_free\n";
-
+	cout<<"+==="+namestr+" is transformed into  \"h bullet g_non_inverse_free\"  by "<<F.size()<<" elementary transformations\n";
 	// return something
 	return make_pair(M.h,F);
 }
 
 /***************************/
 void get_cnts(Tuple<Ga3b2> g,int* cnt_a,int* cnt_a2,int* cnt_b,int* cnt_s,int* cnt_t){
-	*cnt_a=0,*cnt_a2=0,*cnt_b=0;
+	*cnt_a=0,*cnt_a2=0,*cnt_b=0,*cnt_s=0,*cnt_t=0;
 	for(Ga3b2 x:g.e){
 		if(x==a)  ++*cnt_a;
 		if(x==a2) ++*cnt_a2;
@@ -313,7 +315,7 @@ vector<int> get_positions(Tuple<Ga3b2> g,Ga3b2 x){
 
 void cyclic_permutation(CR<Ga3b2>* M){ // transform (h1,...,hn) into (h2,...,hn,h1); transform (H1,...,Hn) into (H2,...,Hn,H1).
 	int n=M->h.len();
-	for(int i=n-1;i>=1;i--) M->Elementary_transformation(i,1);
+	for(int i=1;i<=n-1;i++) M->Elementary_transformation(i,1);
 }
 
 /*--Suppose that h1,...,hn are short s.t. at most 1 of them is equal to one of a,a^2,b--*/
@@ -352,21 +354,20 @@ void Rearrangement(CR<Ga3b2>* M){
 	cout<<"h="<<M->h<<"\n";
 }
 
-/*--normalize--------------*/
+/*--make inverse-free--------------*/
 /*--a tuple in Ga3b2 whose components are conjuagates of short elements--------------*/
-Tuple<Ga3b2> normal(Tuple<Ga3b2> g_input,bool details){
-	Tuple<Ga3b2> g=g_input;
-	Tuple<Ga3b2> g_non_inverse_free; g_non_inverse_free.clear();
-	list<vector<int>> F; F.clear();
-
+void inverse_free(Tuple<Ga3b2> g_input,bool details){
+	CR<Ga3b2> MM; MM.init(g_input);
+	Tuple<Ga3b2> g; g=g_input; // g must be a prefix of M.h
 	for(;;){
 		if(each_component_is_short(g)){
-			if(details) cout<<"===a tuple of short elements==\n";
-			if(details) cout<<"h="<<g<<"\n";
+			cout<<"===get a tuple of short elements==\n";
+			cout<<"h="<<g<<"\n";
 			
 			int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t;
 			get_cnts(g,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
-			if(details) cout<<"cnt_a, cnt_a2, cnt_b, cnt_s, cnt_t = "<<cnt_a<<", "<<cnt_a2<<", "<<cnt_b<<", "<<cnt_s<<", "<<cnt_t<<"\n";
+			
+			cout<<"cnt_a, cnt_a2, cnt_b, cnt_s, cnt_t = "<<cnt_a<<", "<<cnt_a2<<", "<<cnt_b<<", "<<cnt_s<<", "<<cnt_t<<"\n";
 			myassert(cnt_a<=2 && cnt_a2<=2 && cnt_b<=1 && (cnt_a==0 || cnt_a2==0),"no pair of inverse elements nor (l,l,l) with l^3=1");
 
 			CR<Ga3b2> M; M.init(g);
@@ -374,62 +375,92 @@ Tuple<Ga3b2> normal(Tuple<Ga3b2> g_input,bool details){
 			if(cnt_a==2 || cnt_a2==2){ // I_a=2
 				Ga3b2 x=(cnt_a==2?a:a2);
 				auto poss=get_positions(M.h,x);
-				
 				for(int j=poss[0]-1;j>=1;j--) M.Elementary_transformation(j,1);
 				for(int j=poss[1]-1;j>=2;j--) M.Elementary_transformation(j,1);
 				M.Contraction(1,2);
 				
-				if(details) cout<<"---combine two powers of a---\n";
-				if(details) cout<<"h="<<M.h<<"\n";
+				cout<<"---combine two powers of a---\n";
+				cout<<"h="<<M.h<<"\n";
 				if(details) cout<<"H="<<M.H<<"\n";
 
-				F.insert(F.end(),M.F.begin(),M.F.end());
+				for(auto it:M.F){
+					if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+					if(it[0]==2) MM.Contraction(it[1],it[2]);
+				}
+
 				auto ret=shorten_induction(M.h,details,"h");
-				F.insert(F.end(),ret.second.begin(),ret.second.end());
+				for(auto it:ret.second){
+					if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+					if(it[0]==2) MM.Contraction(it[1],it[2]);
+				}
 				g=ret.first;
 
 				continue;
 			}
 
-			if(cnt_a+cnt_a2==1 && cnt_a2==1){ // I_a=1=I_b
+			if(cnt_a+cnt_a2==1 && cnt_b==1){ // I_a=1=I_b
 				Ga3b2 x=(cnt_a==1?a:a2);
-				for(auto poss=get_positions(M.h,x);poss[0]!=1;poss=get_positions(M.h,x)) cyclic_permutation(&M); // h1=x
+				for(;!(M.h.e[0]==x);) cyclic_permutation(&M); // h1=x
+				cout<<"---cyclic_permutation--\n";
+				cout<<"h="<<M.h<<"\n";
 
 				bool ok=false;
-				for(int i=2;!ok && i<=M.h.len();i++)
-					if(is_short(M.h.e[i-1])>=3 && short_table[is_short(M.h.e[0])][is_short(M.h.e[i-1])]){
-						for(int j=i-1;j>=2;j--) M.Elementary_transformation(j,1); // (a,ba,...)
-						M.Contraction(1,2);
+				if(!ok){
+					for(int i=2;!ok && i<=M.h.len();i++)
+						if(is_short(M.h.e[i-1])>=3 && short_table[is_short(M.h.e[0])][is_short(M.h.e[i-1])]){
+							
+							for(int j=i-1;j>=2;j--) M.Elementary_transformation(j,1); // (a,ba,...)
+							M.Contraction(1,2);
 
-						if(details) cout<<"---combine a^e and one of si, tj---\n";
-						if(details) cout<<"h="<<M.h<<"\n";
-						if(details) cout<<"H="<<M.H<<"\n";
+							cout<<"---combine a^e and one of si, tj---\n";
+							cout<<"h="<<M.h<<"\n";
+							if(details) cout<<"H="<<M.H<<"\n";
 
-						F.insert(F.end(),M.F.begin(),M.F.end());
-						auto ret=shorten_induction(M.h,details,"h");
-						F.insert(F.end(),ret.second.begin(),ret.second.end());
-						g=ret.first;
+							for(auto it:M.F){
+								if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+								if(it[0]==2) MM.Contraction(it[1],it[2]);
+							}
+							
+							auto ret=shorten_induction(M.h,details,"h");
+							for(auto it:ret.second){
+								if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+								if(it[0]==2) MM.Contraction(it[1],it[2]);
+							}
+							g=ret.first;
 
-						ok=true;
-					}
+							ok=true;
+						}
+				}
 
-				cyclic_permutation(&M); // hn=x
-				for(int i=1;!ok && i<=M.h.len()-1;i++)
-					if(is_short(M.h.e[i-1])>=3 && short_table[is_short(M.h.e[i-1])][is_short(M.h.e[M.h.len()-1])]){
-						for(int j=i;j<=M.h.len()-1;j++) M.Elementary_transformation(j,-1); // (...,ba,a)
-						M.Contraction(M.h.len()-1,M.h.len());
+				if(!ok){
+					cyclic_permutation(&M); // hn=x
+					cout<<"---cyclic_permutation--\n";
+					cout<<"h="<<M.h<<"\n";
+					for(int i=1;!ok && i<=M.h.len()-1;i++)
+						if(is_short(M.h.e[i-1])>=3 && short_table[is_short(M.h.e[i-1])][is_short(M.h.e[M.h.len()-1])]){
 
-						if(details) cout<<"---combine a^e and one of si, tj---\n";
-						if(details) cout<<"h="<<M.h<<"\n";
-						if(details) cout<<"H="<<M.H<<"\n";
+							for(int j=i;j<=M.h.len()-1;j++) M.Elementary_transformation(j,-1); // (...,ba,a)
+							M.Contraction(M.h.len()-1,M.h.len());
 
-						F.insert(F.end(),M.F.begin(),M.F.end());
-						auto ret=shorten_induction(M.h,details,"h");
-						F.insert(F.end(),ret.second.begin(),ret.second.end());
-						g=ret.first;
+							cout<<"---combine a^e and one of si, tj---\n";
+							cout<<"h="<<M.h<<"\n";
+							if(details) cout<<"H="<<M.H<<"\n";
 
-						ok=true;
-					}
+							for(auto it:M.F){
+								if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+								if(it[0]==2) MM.Contraction(it[1],it[2]);
+							}
+
+							auto ret=shorten_induction(M.h,details,"h");
+							for(auto it:ret.second){
+								if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+								if(it[0]==2) MM.Contraction(it[1],it[2]);
+							}
+							g=ret.first;
+
+							ok=true;
+						}
+				}
 
 				// Otherwise, A={a^e,b,a^eba^e}.
 				if(!ok){
@@ -452,13 +483,20 @@ Tuple<Ga3b2> normal(Tuple<Ga3b2> g_input,bool details){
 					M.Contraction(1,2);
 					M.Contraction(1,2);
 					
-					if(details) cout<<"---transform and contract (aba,a,aba) into a^2---\n";
-					if(details) cout<<"h="<<M.h<<"\n";
+					cout<<"---transform and contract (aba,a,aba) into a^2---\n";
+					cout<<"h="<<M.h<<"\n";
 					if(details) cout<<"H="<<M.H<<"\n";
 
-					F.insert(F.end(),M.F.begin(),M.F.end());
+					for(auto it:M.F){
+						if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+						if(it[0]==2) MM.Contraction(it[1],it[2]);
+					}
+
 					auto ret=shorten_induction(M.h,details,"h");
-					F.insert(F.end(),ret.second.begin(),ret.second.end());
+					for(auto it:ret.second){
+						if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+						if(it[0]==2) MM.Contraction(it[1],it[2]);
+					}
 					g=ret.first;
 
 					ok=true;
@@ -468,10 +506,18 @@ Tuple<Ga3b2> normal(Tuple<Ga3b2> g_input,bool details){
 
 			if(cnt_a+cnt_a2+cnt_b<=1 && cnt_s>0 && cnt_t>0){
 				Rearrangement(&M);
-				F.insert(F.end(),M.F.begin(),M.F.end());
+				for(auto it:M.F){
+					if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+					if(it[0]==2) MM.Contraction(it[1],it[2]);
+				}
+				
 				auto ret=shorten_induction(M.h,details,"h");
-				F.insert(F.end(),ret.second.begin(),ret.second.end());
+				for(auto it:ret.second){
+					if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+					if(it[0]==2) MM.Contraction(it[1],it[2]);
+				}
 				g=ret.first;
+
 				continue;
 			}
 
@@ -479,18 +525,24 @@ Tuple<Ga3b2> normal(Tuple<Ga3b2> g_input,bool details){
 
 			break;
 		}else{
-			auto ret=shorten_induction(g,details,"g");
-			F.insert(F.end(),ret.second.begin(),ret.second.end());
+			auto ret=shorten_induction(MM.h,details,"g");
+			for(auto it:ret.second){
+				if(it[0]==1) MM.Elementary_transformation(it[2],it[3]);
+				if(it[0]==2) MM.Contraction(it[1],it[2]);
+			}
 			g=ret.first;
 		}
 	}
-	return g;
+
+	/*******************/
+
+	for(;;){
+		int k=MM.Restoration();
+		if(k==-1) break;
+		while(Operation3(&MM,k,k)) continue;
+	}
+	cout<<"===the final restoration is done===\n";
+	cout<<"h="<<MM.h<<"\n";
+
+	return;
 }
-
-/***************************/
-/***************************/
-
-//void cyclic_permutation(){ // transform (h1,...,hn) into (h2,...,hn,h1); transform (H1,...,Hn) into (H2,...,Hn,H1).
-//	int n=M.h.len();
-//	for(int i=n-1;i>=1;i--) M.Elementary_transformation(i,1);
-//}

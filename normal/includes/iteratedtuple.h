@@ -65,7 +65,8 @@ struct iteratedTuple{
 				s+=e[i]->print();
 			}
 			s+=")";
-			return s;
+			if(s.size()<=130) return s;
+			else              return string(s,0,130)+"...";
 		}
 	}
 

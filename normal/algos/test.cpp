@@ -89,7 +89,7 @@ void test_solve_short(bool details){
 	cout<<"    - p of them are conjugates of aba;\n";
 	cout<<"    - q of them are conjugates of a^2ba^2.\n";
 	cout<<"Sample case:\n";
-	cout<<"    1 5 5 14 3\n"; // -> 1 2 1 11 0 -> 0 1 1 5 0
+	cout<<"    3 5 7 14 7\n"; // -> 0 2 1 7 0
 	int pa,qa,nb,p,q;
 	cin>>pa>>qa>>nb>>p>>q;
 	Ga3b2 a({"a"}),a2({"a^2"}),b({"b"});
@@ -196,7 +196,7 @@ void test_solve_short(bool details){
 	cin>>test;
 
 	for(int t=1;t<=test;t++){
-		Tuple<Ga3b2> g(g0.e),h;
+		Tuple<Ga3b2> g(g0.e),h,g2;
 		int n=g.len();
 
 		string str1="+---------------------+";
@@ -206,25 +206,30 @@ void test_solve_short(bool details){
 
 		if(details) cout<<"    - Step 1: generate a random tuple g=(g1,...,gn) of length n=pa+pq+nb+p+q="<<n<<"\n";
 		if(details) cout<<"    - Step 2: transform (g1,...,gn) into (h1,...,hm) bullet g_non_inverse_free\n";
-		if(details) cout<<"              where all components of (h1,...,hm) are short,\n";
+		if(details) cout<<"              where (h1,...,hm) is of short elements and inverse-free,\n";
 		if(details) cout<<"                    g_non_inverse_free consists of (g,g^{-1}) and (l,l,l) with l^3=1,\n";
-		if(details) cout<<"                    (h1,...,hm) is inverse-free.\n";
 		
-		if(details) cout<<"\n";
+		cout<<"\n";
 
-		if(details) cout<<"+--------+\n";
-		if(details) cout<<"| Step 1 |\n";
-		if(details) cout<<"+--------+\n";
+		cout<<"+--------+\n";
+		cout<<"| Step 1 |\n";
+		cout<<"+--------+\n";
 		for(int j=1;j<=100;j++){
 			int i=rand()%(n-1)+1;
 			int epsilon=(rand()%2)*2-1;
 			g.Elementary_transformation(i,epsilon);
 		}
-		if(details) cout<<"g="<<g<<"\n";
+		cout<<"g="<<g<<"\n";
 
-		if(details) cout<<"+--------+\n";
-		if(details) cout<<"| Step 2 |\n";
-		if(details) cout<<"+--------+\n";
-		h=normal(g,details);
+		cout<<"+--------+\n";
+		cout<<"| Step 2 |\n";
+		cout<<"+--------+\n";
+		inverse_free(g,details);
+		
+		cout<<"+--------+\n";
+		cout<<"| Step 3 |\n";
+		cout<<"+--------+\n";
+
+		cout<<"\n";
 	}
 }
