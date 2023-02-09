@@ -14,6 +14,9 @@ template<typename G>
 struct Tuple{
 	vector<G> e;
 	
+	Tuple(vector<G> e0): e(e0){}
+	Tuple(): e({}){}
+
 	int len() const{
 		return e.size();
 	}
