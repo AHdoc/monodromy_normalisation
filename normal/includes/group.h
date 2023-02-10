@@ -91,6 +91,10 @@ struct Ga3b2{
 	friend bool operator==(const Ga3b2 g1, const Ga3b2 g2){
 		return g1.e==g2.e;
 	}
+
+	friend bool operator!=(const Ga3b2 g1, const Ga3b2 g2){
+		return g1.e!=g2.e;
+	}
 	
 	friend Ga3b2 operator *(const Ga3b2 g1,const Ga3b2 g2){
 		int i=g1.len()-1,j=0;

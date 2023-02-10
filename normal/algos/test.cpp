@@ -196,7 +196,8 @@ void test_solve_short(bool details){
 	cin>>test;
 
 	for(int t=1;t<=test;t++){
-		Tuple<Ga3b2> g(g0.e),h,g2;
+		Tuple<Ga3b2> g(g0.e),h;
+		list<vector<int>> F1,F2;
 		int n=g.len();
 
 		string str1="+---------------------+";
@@ -204,11 +205,14 @@ void test_solve_short(bool details){
 		while(str2.size()+1<str1.size()) str2=str2+" "; str2=str2+"|";
 		cout<<str1<<"\n"<<str2<<"\n"<<str1<<"\n";
 
-		if(details) cout<<"    - Step 1: generate a random tuple g=(g1,...,gn) of length n=pa+pq+nb+p+q="<<n<<"\n";
-		if(details) cout<<"    - Step 2: transform (g1,...,gn) into (h1,...,hm) bullet g_non_inverse_free\n";
-		if(details) cout<<"              where (h1,...,hm) is of short elements and inverse-free,\n";
-		if(details) cout<<"                    g_non_inverse_free consists of (g,g^{-1}) and (l,l,l) with l^3=1,\n";
-		
+		cout<<"    - Step 1: generate a random tuple g=(g1,...,gn) of length n=pa+pq+nb+p+q="<<n<<"\n";
+		cout<<"    - Step 2: transform/contract (g1,...,gn) into (h1,...,hm) * (y,y^{-1}) * (x,x^{-1}) * ... * (l,l,l) * ..., where:\n";
+		cout<<"              - (h1,...,hm) and (y,y^{-1}) are iterated tuples of short elements\n";
+		cout<<"              - one of h and k is of height 3, the other is of height 1\n";
+		cout<<"              - (h1,...,hm) is inverse-free and contains at most 1 component being a, a^2 or b\n";
+		cout<<"              - all pairs of the form (x,x^{-1}) and triples of the form (l,l,l) with l^3=1 are of height 1\n";
+		cout<<"    - Step 3: normalize (h1,...hm)\n";
+
 		cout<<"\n";
 
 		cout<<"+--------+\n";
@@ -224,11 +228,13 @@ void test_solve_short(bool details){
 		cout<<"+--------+\n";
 		cout<<"| Step 2 |\n";
 		cout<<"+--------+\n";
-		inverse_free(g,details);
+		auto ret=transform_into_inverse_free(g,details);
+		h=ret.first; F1=ret.second;
 		
 		cout<<"+--------+\n";
 		cout<<"| Step 3 |\n";
 		cout<<"+--------+\n";
+		F2=tuple_being_inverse_free::normalize(h,details);
 
 		cout<<"\n";
 	}
