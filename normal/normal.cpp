@@ -18,7 +18,7 @@
 
 using namespace std;
 
-
+#include"normal_form.cpp"
 #include"short.cpp"
 #include"test.cpp"
 
