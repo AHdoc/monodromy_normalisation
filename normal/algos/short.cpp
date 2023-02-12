@@ -209,6 +209,15 @@ bool find_pair(CR<Ga3b2>* M,Tuple<Ga3b2>* g_non_inverse_free,list<vector<int>>* 
 	return false;
 }
 
+/* Restore a short element to a pair of short elements */
+void careful_restorations(CR<Ga3b2>* M){
+	for(;;){
+		int k=M->Restoration();
+		if(k==-1) break;
+		while(Operation3(M,k,k)) continue;
+	}
+}
+
 /*--an induction that--------------*/
 /*----transform (g1,...,gn) in Ga3b2 whose components are conjuagates of short elements--*/
 /*----into-(h1,...,hm) bullet g_non_inverse_free--------------------------------------------*/
@@ -249,11 +258,7 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 
 		/***********/
 		
-		for(;;){
-			int k=M.Restoration();
-			if(k==-1) break;
-			while(Operation3(&M,k,k)) continue;
-		}
+		careful_restorations(&M);
 		if(details) cout<<"| | ---restoration is done---\n";
 		if(details) cout<<"| | h="<<M.h<<"\n";
 		if(details) cout<<"| | H="<<M.H<<"\n";
@@ -336,108 +341,6 @@ void cyclic_permutation_inv(CR<Ga3b2>* M){ // transform (h1,...,hn) into (hn,h1,
 	for(int i=n-1;i>=1;i--) M->Elementary_transformation(i,-1);
 }
 
-/**gotcha****************/
-
-/**find (Q^{-1}s_1Q,Q^{-1}t_1Q) and (Q^{-1}t_1Q,Q^{-1}s_1Q)**/
-int gotcha_s_and_t(CR<Ga3b2>* M,int nh){
-	int cnt=0;
-	for(bool gotcha=true;gotcha;){
-		gotcha=false;
-		for(int i=1;!gotcha && i+1<=nh;i++){
-			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i];
-			if((g1*g2).len()!=0) continue;
-			if(3<=is_short(get_tau_in_expression(g2)) && is_short(get_tau_in_expression(g2))<6){
-				M->Elementary_transformation(i,1);
-				swap(g1,g2);
-			}
-			if(3<=is_short(get_tau_in_expression(g1)) && is_short(get_tau_in_expression(g1))<6){
-				for(int j=i+1;j<=nh-1;j++) M->Elementary_transformation(j,-1);
-				for(int j=i  ;j<=nh-2;j++) M->Elementary_transformation(j,-1);
-				gotcha=true; ++cnt; nh-=2;
-			}
-		}
-	}
-	return cnt;
-}
-
-
-/**find (Q^{-1}aQ,Q^{-1}a^2Q) and (Q^{-1}a^2Q,Q^{-1}aQ)**/
-int gotcha_a_and_a(CR<Ga3b2>* M,int nh){
-	int cnt=0;
-	for(bool gotcha=true;gotcha;){
-		gotcha=false;
-		for(int i=1;!gotcha && i+1<=nh;i++){
-			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i];
-			if((g1*g2).len()!=0) continue;
-			if(is_short(get_tau_in_expression(g2))==0){
-				M->Elementary_transformation(i,1);
-				swap(g1,g2);
-			}
-			if(is_short(get_tau_in_expression(g1))==0){
-				for(int j=i+1;j<=nh-1;j++) M->Elementary_transformation(j,-1);
-				for(int j=i  ;j<=nh-2;j++) M->Elementary_transformation(j,-1);
-				gotcha=true; ++cnt; nh-=2;
-			}
-		}
-	}
-	return cnt;
-}
-
-/**find (Q^{-1}bQ,Q^{-1}bQ)**/
-int gotcha_b_and_b(CR<Ga3b2>* M,int nh){
-	int cnt=0;
-	for(bool gotcha=true;gotcha;){
-		gotcha=false;
-		for(int i=1;!gotcha && i+1<=nh;i++){
-			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i];
-			if((g1*g2).len()!=0) continue;
-			if(is_short(get_tau_in_expression(g1))==2){
-				for(int j=i+1;j<=nh-1;j++) M->Elementary_transformation(j,-1);
-				for(int j=i  ;j<=nh-2;j++) M->Elementary_transformation(j,-1);
-				gotcha=true; ++cnt; nh-=2;
-			}
-		}
-	}
-	return cnt;
-}
-
-/**find (Q^{-1}aQ,Q^{-1}aQ,Q^{-1}aQ)**/
-int gotcha_a_and_a_and_a(CR<Ga3b2>* M,int nh){
-	int cnt=0;
-	for(bool gotcha=true;gotcha;){
-		gotcha=false;
-		for(int i=1;!gotcha && i+2<=nh;i++){
-			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i],g3=M->h.e[i+1];
-			if(g1!=g2 || g2!=g3 || (g1*g2*g3).len()!=0) continue;
-			if(is_short(get_tau_in_expression(g1))==0){
-				for(int j=i+2;j<=nh-1;j++) M->Elementary_transformation(j,-1);
-				for(int j=i+1;j<=nh-2;j++) M->Elementary_transformation(j,-1);
-				for(int j=i  ;j<=nh-3;j++) M->Elementary_transformation(j,-1);
-				gotcha=true; ++cnt; nh-=3;
-			}
-		}
-	}
-	return cnt;
-}
-
-/**find (Q^{-1}a^2Q,Q^{-1}a^2Q,Q^{-1}a^2Q)**/
-int gotcha_a2_and_a2_and_a2(CR<Ga3b2>* M,int nh){
-	int cnt=0;
-	for(bool gotcha=true;gotcha;){
-		gotcha=false;
-		for(int i=1;!gotcha && i+2<=nh;i++){
-			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i],g3=M->h.e[i+1];
-			if(g1!=g2 || g2!=g3 || (g1*g2*g3).len()!=0) continue;
-			if(is_short(get_tau_in_expression(g1))==1){
-				for(int j=i+2;j<=nh-1;j++) M->Elementary_transformation(j,-1);
-				for(int j=i+1;j<=nh-2;j++) M->Elementary_transformation(j,-1);
-				for(int j=i  ;j<=nh-3;j++) M->Elementary_transformation(j,-1);
-				gotcha=true; ++cnt; nh-=3;
-			}
-		}
-	}	return cnt;
-}
-
 /******************/
 
 namespace tuple_of_short_elements{
@@ -454,9 +357,9 @@ namespace tuple_of_short_elements{
 			for(int j=poss[0]-1;j>=1;j--) M->Elementary_transformation(j,1);
 			for(int j=poss[1]-1;j>=2;j--) M->Elementary_transformation(j,1);
 			
-			cout<<"---combine "<<M->h.e[0]<<" and "<<M->h.e[1]<<"---\n";
+			cout<<"| ---combine "<<M->h.e[0]<<" and "<<M->h.e[1]<<"---\n";
 			M->Contraction(1,2);
-			cout<<"h="<<M->h<<"\n";
+			cout<<"| h="<<M->h<<"\n";
 			if(details) cout<<"H="<<M->H<<"\n";
 			return true;
 		}
@@ -470,29 +373,29 @@ namespace tuple_of_short_elements{
 		if(cnt_a+cnt_a2==1 && cnt_b==1){ 
 			Ga3b2 x=(cnt_a==1?a:a2);
 			for(;M->h.e[0]!=x;) cyclic_permutation(M); // h1=x
-			cout<<"---cyclic_permutation--\n";
-			cout<<"h="<<M->h<<"\n";
+			cout<<"| ---cyclic_permutation--\n";
+			cout<<"| h="<<M->h<<"\n";
 			for(int i=2;i<=M->h.len();i++) // attemmpt to make (a,a^2b)->b, (a,ba)->aba, (a,a^2ba^2)->ba^2 or (a,ab)->a^2b
 				if(is_short(M->h.e[i-1])>=3 && short_table[is_short(M->h.e[0])][is_short(M->h.e[i-1])]){
 					for(int j=i-1;j>=2;j--) M->Elementary_transformation(j,1); // (a,ba,...)
 
-					cout<<"---combine "<<M->h.e[0]<<" and "<<M->h.e[1]<<"---\n";
+					cout<<"| ---combine "<<M->h.e[0]<<" and "<<M->h.e[1]<<"---\n";
 					M->Contraction(1,2);
-					cout<<"h="<<M->h<<"\n";
-					if(details) cout<<"H="<<M->H<<"\n";
+					cout<<"| h="<<M->h<<"\n";
+					if(details) cout<<"| H="<<M->H<<"\n";
 					return true;
 				}
 			cyclic_permutation(M); // hn=x
-			cout<<"---cyclic_permutation--\n";
-			cout<<"h="<<M->h<<"\n";
+			cout<<"| ---cyclic_permutation--\n";
+			cout<<"| h="<<M->h<<"\n";
 			for(int i=1;i<=M->h.len()-1;i++) // attemmpt to make (ba,a)->ba^2
 				if(is_short(M->h.e[i-1])>=3 && short_table[is_short(M->h.e[i-1])][is_short(M->h.e[M->h.len()-1])]){
 					for(int j=i;j<=M->h.len()-1;j++) M->Elementary_transformation(j,-1); // (...,ba,a)
 					
-					cout<<"---combine "<<M->h.e[M->h.len()-2]<<" and "<<M->h.e[M->h.len()-1]<<"---\n";
+					cout<<"| ---combine "<<M->h.e[M->h.len()-2]<<" and "<<M->h.e[M->h.len()-1]<<"---\n";
 					M->Contraction(M->h.len()-1,M->h.len());
-					cout<<"h="<<M->h<<"\n";
-					if(details) cout<<"H="<<M->H<<"\n";
+					cout<<"| h="<<M->h<<"\n";
+					if(details) cout<<"| H="<<M->H<<"\n";
 					return true;
 				}
 			// Otherwise, A={a^e,b,a^eba^e}.
@@ -512,48 +415,179 @@ namespace tuple_of_short_elements{
 			if(x==a2) myassert(M->h.e[0]==t1 && M->h.e[1]==a2 && M->h.e[2]==s2,"(aabaa,aa,aabaa)");
 			M->Elementary_transformation(2,1); M->Contraction(1,2); M->Contraction(1,2);
 			
-			cout<<"---transform and contract (a^eba^e,a^e,a^eba^e) into a^2---\n";
-			cout<<"h="<<M->h<<"\n";
-			if(details) cout<<"H="<<M->H<<"\n";
+			cout<<"| ---transform and contract (a^eba^e,a^e,a^eba^e) into a^2---\n";
+			cout<<"| h="<<M->h<<"\n";
+			if(details) cout<<"| H="<<M->H<<"\n";
 			return true;
 		}
 		return false;
 	}
 
 	/*--Suppose that h1,...,hn are short s.t. at most 1 of them is equal to one of a,a^2,b--*/
-	/*--Rearrange them and transform h into a tuple of the form (a/a^2/b,s---s,t---t)--*/
-	void Rearrangement(CR<Ga3b2>* M,bool details){
-		int n=M->h.len(),c_unexcep=0;
-		for(int i=1;i<=n;i++)
-			if(M->h.e[i-1]==a || M->h.e[i-1]==a2 || M->h.e[i-1]==b)
-				++c_unexcep;
-		myassert(c_unexcep==0 || c_unexcep==1,"at most 1 of h1,...,hn is equal to one of a,a^2,b");
-		if(c_unexcep==1)
+	/*--Rearrange them and transform h into a tuple of the form either--*/
+	/*----(a/a^2/b,s---s) * (s_0,t_0)^k or (a/a^2/b,t---t) * (s_0,t_0)^k--*/
+	int Rearrangement(CR<Ga3b2>* M,bool details){
+		int n=M->h.len();
+		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(M->h,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
+		myassert(cnt_a+cnt_a2+cnt_b<=1,"at most 1 of h1,...,hn is equal to one of a,a^2,b");
+
+		if(cnt_a+cnt_a2+cnt_b==1)
 			for(;!(M->h.e[0]==a || M->h.e[0]==a2 || M->h.e[0]==b);) cyclic_permutation(M); // h1=a/a^2/b
 		for(;;){
-			int ok=1;
-			for(int i=1;i<=n-1;i++){
-				// avoid the appearance of (ti,sj)
+			bool ok=true;
+			for(int i=1;ok && i<=n-1;i++){ // avoid the appearance of (ti,sj)
 				if((M->h.e[i-1]==t0 || M->h.e[i-1]==t1 || M->h.e[i-1]==t2)&&(M->h.e[i]==s0 || M->h.e[i]==s1 || M->h.e[i]==s2)){
 					if(is_short(M->h.e[i])+3==is_short(M->h.e[i-1])){ // (t0,s0), (t1,s1) or (s2,s2)
-						for(int j=i-1;j>=1;j--) M->Elementary_transformation(j,1);
-						for(int j=i  ;j>=2;j--) M->Elementary_transformation(j,1);
-						ok=3; break;
+						for(int j=i+1;j<=n-1;j++) M->Elementary_transformation(j,-1);
+						for(int j=i  ;j<=n-2;j++) M->Elementary_transformation(j,-1);
+						return n-2;
 					}
 					if((is_short(M->h.e[i])-3+2)%3==(is_short(M->h.e[i-1])-6)%3){ // (t_{k+1},s_{k-1}) -> (s_k, t_{k+1})
 						M->Elementary_transformation(i,-1);
-						ok=2; break;
+						ok=false; break;
 					}
 					if((is_short(M->h.e[i])-3+1)%3==(is_short(M->h.e[i-1])-6)%3){ // (t_{k+1},s_{k}) -> (s_k, t_{k-1})
 						M->Elementary_transformation(i,1);
-						ok=2; break;
+						ok=false; break;
 					}
 				}
 			}
-			if(ok==1 || ok==3) break;
+			if(ok){
+				cout<<"| ---Rearrange (h1,...,hn) of short elements at most 1 of which is equal to a/a^2/b---\n";
+				cout<<"| h="<<M->h<<"\n";
+				// s_i,...,t_i
+				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++){
+					if((M->h.e[i-1]==s0 && M->h.e[j-1]==t0)||
+					   (M->h.e[i-1]==s1 && M->h.e[j-1]==t1)||
+					   (M->h.e[i-1]==s2 && M->h.e[j-1]==t2)){
+						for(int k=j;k<=n-1;k++) M->Elementary_transformation(k,-1);
+						for(int k=i;k<=n-2;k++) M->Elementary_transformation(k,-1);
+						return n-2;
+					}
+				}
+				// s_i,...,t_{i+1},...,t_{i+2}
+				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
+					if((M->h.e[i-1]==s0 && M->h.e[j-1]==t1 && M->h.e[k-1]==t2)||
+					   (M->h.e[i-1]==s1 && M->h.e[j-1]==t2 && M->h.e[k-1]==t0)||
+					   (M->h.e[i-1]==s2 && M->h.e[j-1]==t0 && M->h.e[k-1]==t1)){
+						for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
+						for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
+						for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
+						M->Elementary_transformation(n-1,1); // (s_i,t_{i+2},t_i)
+						M->Elementary_transformation(n-2,-1); // (*,s_i,t_i)
+						return n-2;
+					}
+				}
+				// s_{i+2},...,s_{i+1},...,t_{i}
+				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
+					if((M->h.e[i-1]==s2 && M->h.e[j-1]==s1 && M->h.e[k-1]==t0)||
+					   (M->h.e[i-1]==s0 && M->h.e[j-1]==s2 && M->h.e[k-1]==t1)||
+					   (M->h.e[i-1]==s1 && M->h.e[j-1]==s0 && M->h.e[k-1]==t2)){
+						for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
+						for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
+						for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
+						M->Elementary_transformation(n-2,1); // (s_{i+1},s_i,t_i)
+						return n-2;
+					}
+				}
+				// a,...,s_{i+1},...,t_i
+				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++){
+					if(M->h.e[0]!=a) continue;
+					if((M->h.e[i-1]==s1 && M->h.e[j-1]==t0)||
+					   (M->h.e[i-1]==s2 && M->h.e[j-1]==t1)||
+					   (M->h.e[i-1]==s0 && M->h.e[j-1]==t2)){
+						for(int l=j;l<=n-1;l++) M->Elementary_transformation(l,-1);
+						for(int l=i;l<=n-2;l++) M->Elementary_transformation(l,-1);
+						for(int l=1;l<=n-3;l++) M->Elementary_transformation(l,-1);
+						M->Elementary_transformation(n-2,-1); // (s_i,a,t_i)
+						M->Elementary_transformation(n-2,-1); // (*,s_i,t_i)
+						return n-2;
+					}
+				}
+				// a^2,...,s_i,...,t_{i+1}
+				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++){
+					if(M->h.e[0]!=a2) continue;
+					if((M->h.e[i-1]==s0 && M->h.e[j-1]==t1)||
+					   (M->h.e[i-1]==s1 && M->h.e[j-1]==t2)||
+					   (M->h.e[i-1]==s2 && M->h.e[j-1]==t0)){
+						for(int l=j;l<=n-1;l++) M->Elementary_transformation(l,-1);
+						for(int l=i;l<=n-2;l++) M->Elementary_transformation(l,-1);
+						for(int l=1;l<=n-3;l++) M->Elementary_transformation(l,-1);
+						M->Elementary_transformation(n-2,-1); // (s_{i+1},a^2,t_{i+1})
+						M->Elementary_transformation(n-2,-1); // (*,s_{i+1},t_{i+1})
+						return n-2;
+					}
+				}
+				// b,...,s0,...,t2 or b,...,s2,...,t0
+				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++){
+					if(M->h.e[0]!=b) continue;
+					if((M->h.e[i-1]==s0 && M->h.e[j-1]==t2)||(M->h.e[i-1]==s2 && M->h.e[j-1]==t0)){
+						for(int l=j;l<=n-1;l++) M->Elementary_transformation(l,-1);
+						for(int l=i;l<=n-2;l++) M->Elementary_transformation(l,-1);
+						for(int l=1;l<=n-3;l++) M->Elementary_transformation(l,-1);
+						M->Elementary_transformation(n-2,-1); // (s2,b,t2) or (s0,b,t0)
+						M->Elementary_transformation(n-2,-1); // (*,s_i,t_i)
+						return n-2;
+					}
+				}
+
+				set<int> As,At; As.clear(); At.clear();
+				for(int i=1;i<=n;i++){
+					if     (M->h.e[i-1]==s0 || M->h.e[i-1]==s1 || M->h.e[i-1]==s2) As.insert(is_short(M->h.e[i-1]));
+					else if(M->h.e[i-1]==t0 || M->h.e[i-1]==t1 || M->h.e[i-1]==t2) At.insert(is_short(M->h.e[i-1]));
+				}
+				if(As.size()==0 || At.size()==0) return n;
+
+				myassert((As.size()==1 && At.size()==2)||(As.size()==2 && At.size()==1),"either |As|==1, |At|==2 or |As|==2, |At|==1");
+				myassert(M->h.e[0]==b,"the tuple must start with b");
+				if(As.size()==1 && At.size()==2){
+					// b,s1,...,s1,t0,...,t0,t2,...,t2
+					int u=0; while(1+    (u+1)<=n && M->h.e[1+    (u+1)-1]==s1) ++u;
+					int v=0; while(1+u+  (v+1)<=n && M->h.e[1+u+  (v+1)-1]==t0) ++v;
+					int w=0; while(1+u+v+(w+1)<=n && M->h.e[1+u+v+(w+1)-1]==t2) ++w;
+					myassert(1+u+v+w==n && u>0 && v>0 && w>0,"the tuple must be of the form (b,s1,...,s1,t0,...,t0,t2,...,t2");
+
+					for(int i=1;i<=v+w;i++) cyclic_permutation_inv(M); // t0,...,t0,t2,...,t2,b,s1,...,s1
+					for(int i=v+w;i>=1;i--) M->Elementary_transformation(i,1); // b,t2,...,t2,t0,...t0,s1,...s1
+					// t_{i+1},...,t_{i+2},...,s_i
+					for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
+						if((M->h.e[i-1]==t2 && M->h.e[j-1]==t1 && M->h.e[k-1]==s0)||
+						   (M->h.e[i-1]==t0 && M->h.e[j-1]==t2 && M->h.e[k-1]==s1)||
+						   (M->h.e[i-1]==t1 && M->h.e[j-1]==t0 && M->h.e[k-1]==s2)){
+							for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
+							for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
+							for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
+							M->Elementary_transformation(n-2,1); // (t_{i+2},t_i,s_i)
+							return n-2;
+						}
+					}
+					myassert(true,"ERROR");
+				}else if(As.size()==2 && At.size()==1){
+					// b,s2,...,s2,s0,...,s0,t1,...,t1
+					int u=0; while(1+    (u+1)<=n && M->h.e[1+    (u+1)-1]==s2) ++u;
+					int v=0; while(1+u+  (v+1)<=n && M->h.e[1+u+  (v+1)-1]==s0) ++v;
+					int w=0; while(1+u+v+(w+1)<=n && M->h.e[1+u+v+(w+1)-1]==t1) ++w;
+					myassert(1+u+v+w==n && u>0 && v>0 && w>0,"the tuple must be of the form (b,s2,...,s2,s0,...,s0,t1,...,t1");
+
+					for(int i=1;i<=1+u+v;i++) cyclic_permutation(M); // t1,...,t1,b,s2,...,s2,s0,...,s0
+					for(int i=w+1;i<n;i++) M->Elementary_transformation(i,-1); // t1,...,t1,s0,...,s0,s2,...,s2,b
+					// t_{i},...,s_{i+2},...,s_{i+1}
+					for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
+						if((M->h.e[i-1]==t0 && M->h.e[j-1]==s2 && M->h.e[k-1]==s1)||
+						   (M->h.e[i-1]==t1 && M->h.e[j-1]==s0 && M->h.e[k-1]==s2)||
+						   (M->h.e[i-1]==t2 && M->h.e[j-1]==s1 && M->h.e[k-1]==s0)){
+							for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
+							for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
+							for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
+							M->Elementary_transformation(n-1,1); // (t_i,s_{i+1},s_i)
+							M->Elementary_transformation(n-2,-1); // (*,t_i,s_i)
+							return n-2;
+						}
+					}
+					myassert(true,"ERROR");
+				}
+			}
 		}
-		cout<<"| ---Rearrange (h1,...,hn) of short elements s.t. at most 1 of them is equal to a/a^2/b---\n";
-		cout<<"| h="<<M->h<<"\n";
 	}
 }
 
@@ -568,8 +602,7 @@ pair<Tuple<Ga3b2>,list<vector<int>>> transform_into_inverse_free(Tuple<Ga3b2> g_
 	cout<<"| g="<<g<<"\n";
 	for(;;){
 		auto ret=shorten_induction(g,details,"h");
-		for(auto it:ret.second) if(it[0]==1) MM.Elementary_transformation(it[2],it[3]); else MM.Contraction(it[1],it[2]);
-		g=ret.first;
+		MM.Apply(ret.second); g=ret.first;
 		myassert(each_component_is_short(g),"after the shorten_induction, each component must be short");
 
 		cout<<"| ===get a tuple of short elements==\n";
@@ -577,18 +610,16 @@ pair<Tuple<Ga3b2>,list<vector<int>>> transform_into_inverse_free(Tuple<Ga3b2> g_
 
 		CR<Ga3b2> M; M.init(g);
 		if(tuple_of_short_elements::eliminate_a_and_a(&M,details)){ // (a,a)->a^2 or (a^2,a^2)->a
-			for(auto it:M.F) if(it[0]==1) MM.Elementary_transformation(it[2],it[3]); else MM.Contraction(it[1],it[2]);
-			g=M.h; continue;
+			MM.Apply(M.F); g=M.h; continue;
 		}
 		if(tuple_of_short_elements::eliminate_a_and_b(&M,details)){ // I_a=1=I_b
-			for(auto it:M.F) if(it[0]==1) MM.Elementary_transformation(it[2],it[3]); else MM.Contraction(it[1],it[2]);
-			g=M.h; continue;
+			MM.Apply(M.F); g=M.h; continue;
 		}
-		tuple_of_short_elements::Rearrangement(&M,details);
+		int newn=tuple_of_short_elements::Rearrangement(&M,details);
 		{
-			for(auto it:M.F) if(it[0]==1) MM.Elementary_transformation(it[2],it[3]); else MM.Contraction(it[1],it[2]);
-			g=M.h;
-			break;
+			MM.Apply(M.F); g.init(vector<Ga3b2>(M.h.e.begin(),M.h.e.begin()+newn));
+			if(newn<M.h.len()) continue;
+			else break;
 		}
 	}
 
@@ -827,21 +858,13 @@ list<vector<int>> normalize_inverse_free_tuple(Tuple<Ga3b2> h_input,bool details
 		if(!cont && cnt_a==1 && cnt_s==0){ // (a,t,...)
 			combine_a_t(&M,details);
 			auto ret=transform_into_inverse_free(M.h,details);
-			for(auto it:ret.second){
-				myassert(it[0]==1,"transform_into_inverse_free on (s,...,s.t) allows only elementary transformations");
-				M.Elementary_transformation(it[2],it[3]);
-			}
-			g=ret.first; cont=true;
+			M.Apply(ret.second); g=ret.first; cont=true;
 		}
 
 		if(!cont && cnt_a2==1 && cnt_t==0){ // (a^2,s,...)
 			combine_a2_s(&M,details);
 			auto ret=transform_into_inverse_free(M.h,details);
-			for(auto it:ret.second){
-				myassert(it[0]==1,"transform_into_inverse_free on (s,...,s.t) allows only elementary transformations");
-				M.Elementary_transformation(it[2],it[3]);
-			}
-			g=ret.first; cont=true;
+			M.Apply(ret.second); g=ret.first; cont=true;
 		}
 
 		if(!cont && cnt_a==1 && cnt_t==0){ // (a,s,...)
@@ -863,29 +886,188 @@ list<vector<int>> normalize_inverse_free_tuple(Tuple<Ga3b2> h_input,bool details
 			g=M.h; // no need to continue anymore
 		}
 
-		for(auto it:M.F) if(it[0]==1) MM.Elementary_transformation(it[2],it[3]); else MM.Contraction(it[1],it[2]);
+		MM.Apply(M.F);
 		if(!cont) break;
 	}
 
 	return MM.F;
 }
 
-void sort_concatenation(Tuple<Ga3b2> g_input,bool details){
-	CR<Ga3b2> MM; MM.init(g_input);
-	int n=g_input.len(),m_st=0,m_a=0,m_b=0,n_0=0,n_1=0,m=g_input.len();
-	
-	n_1 =gotcha_a2_and_a2_and_a2(&MM,m); m-=3*n_1;
-	n_0 =gotcha_a_and_a_and_a(&MM,m);    m-=3*n_0;
-	m_b =gotcha_b_and_b(&MM,m);          m-=2*m_b;
-	m_a =gotcha_a_and_a(&MM,m);          m-=2*m_a;
-	m_st=gotcha_s_and_t(&MM,m);          m-=2*m_st;
 
-	myassert(n==m+2*m_st+2*m_a+2*m_b+3*n_0+3*n_1,"n == m + 2m_st + 2m_a + 2m_b + 3n_0 + 3n_1");
-	cout<<"n = "<<n<<"\n";
-	cout<<"-> m    = "<<m   <<"\n";
-	cout<<"-> m_st = "<<m_st<<"\n";
-	cout<<"-> m_a  = "<<m_a <<"\n";
-	cout<<"-> m_b  = "<<m_b <<"\n";
-	cout<<"-> n_0  = "<<n_0 <<"\n";
-	cout<<"-> n_1  = "<<n_1 <<"\n";	
+/**gotcha****************/
+
+/**find (Q^{-1}s_1Q,Q^{-1}t_1Q) and (Q^{-1}t_1Q,Q^{-1}s_1Q)**/
+bool gotcha_s_and_t(CR<Ga3b2>* M,int nh){
+	for(int i=1,j;i<=nh;i=j+1){
+		j=i; Ga3b2 prod=M->h.e[i-1];
+		while(prod.len()>0) prod=prod*M->h.e[j++];
+		if(i+1==j){
+			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i];
+			if((g1*g2).len()!=0) continue;
+			if(3<=is_short(get_tau_in_expression(g2)) && is_short(get_tau_in_expression(g2))<6){
+				M->Elementary_transformation(i,1);
+				swap(g1,g2);
+			}
+			if(3<=is_short(get_tau_in_expression(g1)) && is_short(get_tau_in_expression(g1))<6){
+				for(int j=i+1;j<=nh-1;j++) M->Elementary_transformation(j,-1);
+				for(int j=i  ;j<=nh-2;j++) M->Elementary_transformation(j,-1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**find (Q^{-1}aQ,Q^{-1}a^2Q) and (Q^{-1}a^2Q,Q^{-1}aQ)**/
+bool gotcha_a_and_a(CR<Ga3b2>* M,int nh){
+	for(int i=1,j;i<=nh;i=j+1){
+		j=i; Ga3b2 prod=M->h.e[i-1];
+		while(prod.len()>0) prod=prod*M->h.e[j++];
+		if(i+1==j){
+			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i];
+			if(is_short(get_tau_in_expression(g2))==0){
+				M->Elementary_transformation(i,1);
+				swap(g1,g2);
+			}
+			if(is_short(get_tau_in_expression(g1))==0){
+				for(int j=i+1;j<=nh-1;j++) M->Elementary_transformation(j,-1);
+				for(int j=i  ;j<=nh-2;j++) M->Elementary_transformation(j,-1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**find (Q^{-1}bQ,Q^{-1}bQ)**/
+bool gotcha_b_and_b(CR<Ga3b2>* M,int nh){
+	for(int i=1,j;i<=nh;i=j+1){
+		j=i; Ga3b2 prod=M->h.e[i-1];
+		while(prod.len()>0) prod=prod*M->h.e[j++];
+		if(i+1==j){
+			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i];
+			if(is_short(get_tau_in_expression(g1))==2){
+				for(int j=i+1;j<=nh-1;j++) M->Elementary_transformation(j,-1);
+				for(int j=i  ;j<=nh-2;j++) M->Elementary_transformation(j,-1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**find (Q^{-1}aQ,Q^{-1}aQ,Q^{-1}aQ)**/
+bool gotcha_a_and_a_and_a(CR<Ga3b2>* M,int nh){
+	for(int i=1,j;i<=nh;i=j+1){
+		j=i; Ga3b2 prod=M->h.e[i-1];
+		while(prod.len()>0) prod=prod*M->h.e[j++];
+		if(i+2==j){
+			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i],g3=M->h.e[i+1];
+			if(g1==g2 && g2==g3 && is_short(get_tau_in_expression(g1))==0){
+				for(int j=i+2;j<=nh-1;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+1;j<=nh-2;j++) M->Elementary_transformation(j,-1);
+				for(int j=i  ;j<=nh-3;j++) M->Elementary_transformation(j,-1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**find (Q^{-1}a^2Q,Q^{-1}a^2Q,Q^{-1}a^2Q)**/
+bool gotcha_a2_and_a2_and_a2(CR<Ga3b2>* M,int nh){
+	for(int i=1,j;i<=nh;i=j+1){
+		j=i; Ga3b2 prod=M->h.e[i-1];
+		while(prod.len()>0) prod=prod*M->h.e[j++];
+		if(i+2==j){
+			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i],g3=M->h.e[i+1];
+			if(g1==g2 && g2==g3 && is_short(get_tau_in_expression(g1))==1){
+				for(int j=i+2;j<=nh-1;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+1;j<=nh-2;j++) M->Elementary_transformation(j,-1);
+				for(int j=i  ;j<=nh-3;j++) M->Elementary_transformation(j,-1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**find (s0,s2,s0,s2,s0,s2)**/
+bool gotcha_s020202(CR<Ga3b2>* M,int nh){
+	for(int i=1,j;i<=nh;i=j+1){
+		j=i; Ga3b2 prod=M->h.e[i-1];
+		while(prod.len()>0) prod=prod*M->h.e[j++];
+		if(i+5==j){
+			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i],g3=M->h.e[i+1],g4=M->h.e[i+2],g5=M->h.e[i+3],g6=M->h.e[i+4];
+			if(g1==s0 && g2==s2 && g3==s0 && g4==s2 && g5==s0 && g6==s2){
+				for(int j=i+5;j<=nh-1;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+4;j<=nh-2;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+3;j<=nh-3;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+2;j<=nh-4;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+1;j<=nh-5;j++) M->Elementary_transformation(j,-1);
+				for(int j=i  ;j<=nh-6;j++) M->Elementary_transformation(j,-1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**find (t0,t2,t0,t2,t0,t2)**/
+bool gotcha_t020202(CR<Ga3b2>* M,int nh){
+	for(int i=1,j;i<=nh;i=j+1){
+		j=i; Ga3b2 prod=M->h.e[i-1];
+		while(prod.len()>0) prod=prod*M->h.e[j++];
+		if(i+5==j){
+			Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i],g3=M->h.e[i+1],g4=M->h.e[i+2],g5=M->h.e[i+3],g6=M->h.e[i+4];
+			if(g1==t0 && g2==t2 && g3==t0 && g4==t2 && g5==t0 && g6==t2){
+				for(int j=i+5;j<=nh-1;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+4;j<=nh-2;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+3;j<=nh-3;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+2;j<=nh-4;j++) M->Elementary_transformation(j,-1);
+				for(int j=i+1;j<=nh-5;j++) M->Elementary_transformation(j,-1);
+				for(int j=i  ;j<=nh-6;j++) M->Elementary_transformation(j,-1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**gotcha****************/
+
+void sort_concatenation(Tuple<Ga3b2> g_input){
+	CR<Ga3b2> MM; MM.init(g_input);
+	int n=g_input.len();
+	while(gotcha_a_and_a_and_a(&MM,n) && gotcha_a2_and_a2_and_a2(&MM,n)){
+		// (g_{n-5}, g_{n-4}, g_{n-3}, g_{n-2}, g_{n-1}, g_n) = (a, a, a, a^2, a^2, a^2)
+		MM.Elementary_transformation(n-3,-1); // -> (a, a, a^2, a, a^2, a^2)
+		MM.Elementary_transformation(n-2,-1); // -> (a, a, a^2, a^2, a, a^2)
+		MM.Elementary_transformation(n-4,-1); // -> (a, a^2, a, a^2, a, a^2)
+	}
+	cout<<"g="<<MM.h<<"\n";
+
+	int m_s=0,m_t=0,m_st=0,m_a=0,m_b=0,n_0=0,n_1=0,m=n;
+	
+	while(gotcha_s020202(&MM,m)) ++m_s, m-=6;
+	while(gotcha_t020202(&MM,m)) ++m_t, m-=6;
+	while(gotcha_s_and_t(&MM,m)) ++m_st, m-=2;
+	while(gotcha_a_and_a(&MM,m)) ++m_a, m-=2;
+	while(gotcha_b_and_b(&MM,m)) ++m_b, m-=2;
+	while(gotcha_a_and_a_and_a(&MM,m)) ++n_0, m-=3;
+	while(gotcha_a2_and_a2_and_a2(&MM,m)) ++n_1, m-=3;
+
+	cout<<"===concatenation form===\n";
+	MM.init(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m)));
+
+	cout<<"---> ";
+	cout<<MM.h;
+	if(m_s >0) cout<<" * (s0,s2,s0,s2,s0,s2)^"<<m_s;
+	if(m_t >0) cout<<" * (t0,t2,t0,t2,t0,t2)^"<<m_t;
+	if(m_st>0) cout<<" * (s0,t0)^"<<m_st;
+	if(m_a >0) cout<<" * (a,a^2)^"<<m_a;
+	if(m_b >0) cout<<" * (b,b)^"<<m_b;
+	if(n_0 >0) cout<<" * (a,a,a)^"<<n_0;
+	if(n_1 >0) cout<<" * (a^2,a^2,a^2)^"<<n_1;
+	cout<<"\n";
 }

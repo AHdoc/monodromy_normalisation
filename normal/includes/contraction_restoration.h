@@ -109,6 +109,14 @@ struct CR{
 
 		return k;
 	}
+
+	void Apply(list<vector<int>> F0){
+		for(auto it:F0)
+			if(it[0]==1)
+				Elementary_transformation(it[2],it[3]);
+			else
+				Contraction(it[1],it[2]);
+	}
 };
 
 #endif

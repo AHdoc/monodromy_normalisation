@@ -76,93 +76,86 @@ void test_CR(){
 	}
 }
 
-void test_solve_short(bool details){
-	cout<<"This is a quick test for solve_short.\n";
+void test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool details){
+	string str1="+---------------------+";
+	string str2="|  Test Case "+to_string(testnum);
+	while(str2.size()+1<str1.size()) str2=str2+" "; str2=str2+"|";
+	cout<<str1<<"\n"<<str2<<"\n"<<str1<<"\n";
 
-	cout<<"Input   pa   qa   nb   p   q   such that\n";
-	cout<<"    - (g1,...,gn) is an n-tuple in PSL(2,Z)=Ga3b2 satisfying g1***gn=1;\n";
-	cout<<"    - n = pa+qa+nb+p+q;\n";
-	cout<<"    - g1, ..., gn are conjugates of a, a^2, b, aba, a^2ba^2;\n";
-	cout<<"    - pa of them are conjugates of a;\n";
-	cout<<"    - qa of them are conjugates of a^2;\n";
-	cout<<"    - nb of them are conjugates of b;\n";
-	cout<<"    - p of them are conjugates of aba;\n";
-	cout<<"    - q of them are conjugates of a^2ba^2.\n";
-	cout<<"Sample case:\n";
-	cout<<"    3 5 7 14 7\n"; // -> 0 2 1 7 0
-	int pa,qa,nb,p,q;
-	Tuple<Ga3b2> g0;
-	for(;;){
-		cin>>pa>>qa>>nb>>p>>q;
-		auto ret=get_normal_form(pa,qa,nb,p,q);
-		if(ret.first){
-			g0=ret.second;
-			break;
-		}else{
-			cout<<"Impossible pattern! Please input again.\n";
-		}
+	cout<<"    - Step 1: generate a random tuple g=(g1,...,gn) of length n=pa+qa+nb+p+q="<<n<<" s.t.\n";
+	cout<<"        - pa of them are conjugates of a;\n";
+	cout<<"        - qa of them are conjugates of a^2;\n";
+	cout<<"        - nb of them are conjugates of b;\n";
+	cout<<"        - p of them are conjugates of aba;\n";
+	cout<<"        - q of them are conjugates of a^2ba^2.\n";
+	cout<<"    - Step 2: shorten g=(g1,...,gn) and make it inverse-free#\n";
+	cout<<"        transform/contract (g1,...,gn) into (h1,...,hm) * (y,y^{-1}) * (x,x^{-1}) * ... * (l,l,l) * ..., where:\n";
+	cout<<"        - (h1,...,hm) and (y,y^{-1}) are iterated tuples of short elements\n";
+	cout<<"        - one of h and k is of height 3, the other is of height 1\n";
+	cout<<"        - (h1,...,hm) is inverse-free and contains at most 1 component being a, a^2 or b\n";
+	cout<<"        - all pairs of the form (x,x^{-1}) and triples of the form (l,l,l) with l^3=1 are of height 1\n";
+	cout<<"    - Step 3: normalize (h1,...hm)\n";
+	cout<<"    - Step 4: write the resulting tuple as a desired concatenation\n";
+	cout<<"\n";
+
+	cout<<"+--------+\n";
+	cout<<"| Step 1 |\n";
+	cout<<"+--------+\n";
+	
+	Tuple<Ga3b2> g(get_normal_form(pa,qa,nb,p,q).second.e),h;
+	list<vector<int>> F1,F2;
+
+	for(int j=1;j<=100;j++){
+		int i=rand()%(n-1)+1;
+		int epsilon=(rand()%2)*2-1;
+		g.Elementary_transformation(i,epsilon);
 	}
-	/******************************************************************/
+	cout<<"n, pa, qa, nb, p, q = "<<n<<", "<<pa<<", "<<qa<<", "<<nb<<", "<<p<<", "<<q<<"\n";
+	cout<<"g="<<g<<"\n";
+
+	cout<<"+--------+\n";
+	cout<<"| Step 2 |\n";
+	cout<<"+--------+\n";
+	auto ret=transform_into_inverse_free(g,details);
+	h=ret.first; F1=ret.second;
+		
+	cout<<"+--------+\n";
+	cout<<"| Step 3 |\n";
+	cout<<"+--------+\n";
+	F2=normalize_inverse_free_tuple(h,details);
+
+	cout<<"+--------+\n";
+	cout<<"| Step 4 |\n";
+	cout<<"+--------+\n";
+	CR<Ga3b2> M; M.init(g); M.Apply(F1); M.Apply(F2); careful_restorations(&M);
+	sort_concatenation(M.h);
+
+	cout<<"\n";
+}
+
+void multi_test_normalize_short(bool details){
+	cout<<"This is a quick multi-test for short.cpp\n";
+	cout<<"Input   nl   nr   s.t.   (g1,...,gn) with nl<=n<=nr   is an n-tuple in PSL(2,Z)=Ga3b2 satisfying g1***gn=1.\n";
+	int n,nl,nr; cin>>nl>>nr;
 
 	cout<<"Input t for the number of test cases.\n";
-	int test;
-	cin>>test;
+	int test; cin>>test;
 
 	for(int t=1;t<=test;t++){
-		Tuple<Ga3b2> g(g0.e),h;
-		list<vector<int>> F1,F2;
-		int n=g.len();
-
-		string str1="+---------------------+";
-		string str2="|  Test Case "+to_string(t);
-		while(str2.size()+1<str1.size()) str2=str2+" "; str2=str2+"|";
-		cout<<str1<<"\n"<<str2<<"\n"<<str1<<"\n";
-
-		cout<<"    - Step 1: generate a random tuple g=(g1,...,gn) of length n=pa+pq+nb+p+q="<<n<<"\n";
-		cout<<"    - Step 2: shorten g=(g1,...,gn) and make it inverse-free#\n";
-		cout<<"        transform/contract (g1,...,gn) into (h1,...,hm) * (y,y^{-1}) * (x,x^{-1}) * ... * (l,l,l) * ..., where:\n";
-		cout<<"        - (h1,...,hm) and (y,y^{-1}) are iterated tuples of short elements\n";
-		cout<<"        - one of h and k is of height 3, the other is of height 1\n";
-		cout<<"        - (h1,...,hm) is inverse-free and contains at most 1 component being a, a^2 or b\n";
-		cout<<"        - all pairs of the form (x,x^{-1}) and triples of the form (l,l,l) with l^3=1 are of height 1\n";
-		cout<<"    - Step 3: normalize (h1,...hm)\n";
-
-		cout<<"\n";
-
-		cout<<"+--------+\n";
-		cout<<"| Step 1 |\n";
-		cout<<"+--------+\n";
-		for(int j=1;j<=100;j++){
-			int i=rand()%(n-1)+1;
-			int epsilon=(rand()%2)*2-1;
-			g.Elementary_transformation(i,epsilon);
-		}
-		cout<<"g="<<g<<"\n";
-
-		cout<<"+--------+\n";
-		cout<<"| Step 2 |\n";
-		cout<<"+--------+\n";
-		auto ret=transform_into_inverse_free(g,details);
-		h=ret.first; F1=ret.second;
-		
-		cout<<"+--------+\n";
-		cout<<"| Step 3 |\n";
-		cout<<"+--------+\n";
-		F2=normalize_inverse_free_tuple(h,details);
-
-		cout<<"+--------+\n";
-		cout<<"| Output |\n";
-		cout<<"+--------+\n";
-		CR<Ga3b2> M; M.init(g);
-		for(auto it:F1) if(it[0]==1) M.Elementary_transformation(it[2],it[3]); else M.Contraction(it[1],it[2]);
-		for(auto it:F2) if(it[0]==1) M.Elementary_transformation(it[2],it[3]); else M.Contraction(it[1],it[2]);
+		n=rand()%(nr-nl+1)+nl;
+		int pa,qa,nb,p,q;
 		for(;;){
-			int k=M.Restoration();
-			if(k==-1) break;
-			while(Operation3(&M,k,k)) continue;
+			pa=0,qa=0,nb=0,p=0,q=0;
+			for(int i=1;i<=n;i++){
+				int o=rand()%5;
+				if(o==0) ++pa;
+				if(o==1) ++qa;
+				if(o==2) ++nb;
+				if(o==3) ++p;
+				if(o==4) ++q;
+			}
+			if(get_normal_form(pa,qa,nb,p,q).first) break;
 		}
-		cout<<"g="<<M.h<<"\n";
-
-		cout<<"\n";
+		test_normalize_short(t,n,pa,qa,nb,p,q,details);
 	}
 }
