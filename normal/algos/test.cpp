@@ -150,6 +150,19 @@ void test_solve_short(bool details){
 		cout<<"+--------+\n";
 		F2=normalize_inverse_free_tuple(h,details);
 
+		cout<<"+--------+\n";
+		cout<<"| Output |\n";
+		cout<<"+--------+\n";
+		CR<Ga3b2> M; M.init(g);
+		for(auto it:F1) if(it[0]==1) M.Elementary_transformation(it[2],it[3]); else M.Contraction(it[1],it[2]);
+		for(auto it:F2) if(it[0]==1) M.Elementary_transformation(it[2],it[3]); else M.Contraction(it[1],it[2]);
+		for(;;){
+			int k=M.Restoration();
+			if(k==-1) break;
+			while(Operation3(&M,k,k)) continue;
+		}
+		cout<<"g="<<M.h<<"\n";
+
 		cout<<"\n";
 	}
 }

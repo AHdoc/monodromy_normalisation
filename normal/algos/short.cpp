@@ -318,6 +318,24 @@ void cyclic_permutation(CR<Ga3b2>* M){ // transform (h1,...,hn) into (h2,...,hn,
 	for(int i=1;i<=n-1;i++) M->Elementary_transformation(i,1);
 }
 
+/* Suppose that h1***h_{n2}=1.
+   We transform (h1,...,h_{n2},...) into (h_{n2},h1,...,h_{n2-1},...);
+      transform (H1,...,H_{n2},...) into (H_{n2},H1,...,H_{n2-1},...).
+}
+*/
+void cyclic_permutation_inv(CR<Ga3b2>* M,int n2){
+	Ga3b2 prod; prod.be_identity();
+	for(int i=1;i<=n2;i++) prod=prod*M->h.e[i-1];
+	myassert(prod.len()==0,"prod=1");
+	
+	for(int i=n2-1;i>=1;i--) M->Elementary_transformation(i,-1);
+}
+
+void cyclic_permutation_inv(CR<Ga3b2>* M){ // transform (h1,...,hn) into (hn,h1,...,h_{n-1}); transform (H1,...,Hn) into (Hn,H1,...,H_{n-1}).
+	int n=M->h.len();
+	for(int i=n-1;i>=1;i--) M->Elementary_transformation(i,-1);
+}
+
 /**gotcha****************/
 
 /**find (Q^{-1}s_1Q,Q^{-1}t_1Q) and (Q^{-1}t_1Q,Q^{-1}s_1Q)**/
@@ -585,10 +603,25 @@ pair<Tuple<Ga3b2>,list<vector<int>>> transform_into_inverse_free(Tuple<Ga3b2> g_
 /******************/
 
 namespace Moishezon{
+
+	/* normalize_s is an extension of the procedure introduced by Moishezon
+
+	   Given a tuple (g1,...,gn) of {a,b,s0,s1,s2} that has at most 1 component being a or b,
+	   it is transformed into (h1,...,hn) s.t. either
+	   (1) (h1,...,hn) = (s0,s1,s0,s1,s0,s1)^m, or
+	   (2) (h1,h2) = (a,s0) or (hn,h1) = (s2,a) or (hn,h1,h2) = (s1,a,s1), or
+	   (3) h starts with (b,s2) or (b,s0,...,s0,s2,s0), or
+	       (the cyclic_permutation of) h ends with (s0,b) or (s2,s0,s2,...,s2,b).
+	*/
 	void normalize_s(CR<Ga3b2>* M,bool details){ // by Moishezon
-		cout<<"+====normalize a tuple of {s0,s1,s2} by Moishezon===\n";
-		Tuple<Ga3b2> g=M->h; // g must be a prefix of M.h
+		cout<<"+====normalize \"a tuple of {s0,s1,s2}\" (in fact, a tuple of {a,b,s0,s1,s2}) by Moishezon===\n";
 		cout<<"| g="<<M->h<<"\n";
+
+		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(M->h,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
+		while(cnt_a+cnt_b==1 && M->h.e[0]!=a && M->h.e[0]!=b) cyclic_permutation(M);
+
+		Tuple<Ga3b2> g=M->h; // g must be a prefix of M.h, g starts with a or b when cnt_a+cnt_b==1
+		cout<<"| ->"<<g<<"\n";
 
 		for(;;){
 			if(details) cout<<"| g="<<M->h<<"\n";
@@ -672,6 +705,65 @@ namespace Moishezon{
 		cout<<"|----conclusion---\n";
 		cout<<"| g="<<M->h<<"\n";
 		cout<<"| h="<<g<<"\n";
+		
+		// --- (h1,h2) = (a,s0) or (hn,h1) = (s2,a) or (hn,h1,h2) = (s1,a,s1), or
+		// --- h starts with (b,s2) or (b,s0,...,s0,s2,s0), or
+		// --- (the cyclic_permutation of) h ends with (s0,b) or (s2,s0,s2,...,s2,b).
+
+		// Notice: g.len <= M.h.len()
+		if(g.len()>0){
+			if(g.e[0]==a){
+				if(g.e[1]==s0) // (h1,h2) = (a,s0) ---> (b)
+					M->Contraction(1,2);
+				else if(g.e[g.len()-1]==s2){ // (hn,h1) = (s2,a) ---> (b)
+					cyclic_permutation_inv(M, g.len()); // (h1,h2) = (s2,a)
+					M->Contraction(1,2); // ---> (b)
+				}else if(g.e[g.len()-1]==s1 && g.e[1]==s1){
+					cyclic_permutation_inv(M, g.len()); // (h1,h2,h3) = (s1,a,s1)
+					M->Elementary_transformation(2,-1); // (h1,h2,h3) = (s1,s0,a)
+					M->Contraction(1,2); // ---> (a,a)
+					M->Contraction(1,2); // ---> (a)
+				}else
+					myassert(true,"when h1=a, there is no more possibility");
+			}else if(g.e[0]==b){
+				if(g.e[1]==s2) // (h1,h2) = (b,s2) ---> (a^2)
+					M->Contraction(1,2);
+				else if(g.e[g.len()-1]==s0){ // (hn,h1) = (s0,b)
+					cyclic_permutation_inv(M, g.len()); // (h1,h2) = (s0,b)
+					M->Contraction(1,2); // ---> (a^2)
+				}else{
+					int n2=g.len(); bool chk=false;
+					if(g.e[1]==s0){
+						int k=1;
+						while(1+(k+1)<=n2 && g.e[k+1]==s0) ++k;
+						if(1+(k+2)<=n2 && g.e[k+1]==s2 && g.e[k+2]==s0){ // (h1,h2,...,h_{k+3}) = (b,s0,...,s0,s2,s0)
+							for(int i=k+1;i>=2;i--){ // (h_i,h_{i+1},h_{i+2}) = (s0,s2,s0) -> (s2,s1,s0) -> (s2,s0,s2)
+								M->Elementary_transformation(i,1); M->Elementary_transformation(i+1,1);
+							}
+							M->Contraction(1,2); // (h1,h2) = (b,s2) ---> (a^2)
+							chk=true;
+						}
+					}
+					if(!chk && g.e[n2-1]==s2){
+						int k=1;
+						while(1+(k+1)<=n2 && g.e[n2-(k+1)]==s2) ++k;
+						if(1+(k+2)<=n2 && g.e[n2-(k+1)]==s0 && g.e[n2-(k+2)]==s2){ // (h1,...,h_{n2},...) = (b,...,s2,s0,s2,...,...)
+							for(int i=k+1;i>=2;i--){ // (h_{n2-i},h_{n2-i+1},h_{n2-i+2}) = (s2,s0,s2)
+								M->Elementary_transformation(n2-i,1); M->Elementary_transformation(n2-i+1,1);
+							}
+							cyclic_permutation_inv(M, n2); // (h1,h2) = (s0,b)
+							M->Contraction(1,2); // ---> (a^2)
+							chk=true;
+						}
+					}
+					myassert(chk,"when h1=b, there is no more possibility");
+				}
+			}
+
+			cout<<"|----contraction---\n";
+			cout<<"| g="<<M->h<<"\n";
+			cout<<"| G="<<M->H<<"\n";
+		}
 		cout<<"+=======\n";
 	}
 
@@ -686,12 +778,19 @@ namespace Moishezon{
 		// R_1^{-1}:(h^{-1},g^{-1})  ---> (h^{-1}g^{-1}h,h^{-1})
 		// R_i ~~~> R_{n-i}^{-1} and R_i^{-1} ~~~> R_{n-i}
 		
-		cout<<"+====normalize a tuple of {t0,t1,t2} by Moishezon===\n";
+		cout<<"+====normalize \"a tuple of {t0,t1,t2}\" (in fact, a tuple of {a,b,s0,s1,s2}) by Moishezon===\n";
 		cout<<"| g="<<M->h<<"\n";
-		int n=M->h.len();
-		for(auto it:M2.F)
-			M->Elementary_transformation(n-it[2],-it[3]);
-		cyclic_permutation(M);
+		for(auto it:M2.F){
+			if(it[0]==1){
+				int n=M->h.len();
+				M->Elementary_transformation(n-it[2],-it[3]);
+			}else{
+				int n=M->h.len();
+				M->Contraction(n+1-it[2],n+1-it[1]);
+			}
+
+		}
+		cyclic_permutation(M); // (ab,ba,ab,ba,...) -> (ba,ab,ba,ab,...)
 		cout<<"| ->"<<M->h<<"\n";
 		cout<<"+=======\n";
 	}
@@ -743,6 +842,16 @@ list<vector<int>> normalize_inverse_free_tuple(Tuple<Ga3b2> h_input,bool details
 				M.Elementary_transformation(it[2],it[3]);
 			}
 			g=ret.first; cont=true;
+		}
+
+		if(!cont && cnt_a==1 && cnt_t==0){ // (a,s,...)
+			Moishezon::normalize_s(&M,details);
+			g=M.h; cont=true;
+		}
+
+		if(!cont && cnt_b==1 && cnt_t==0){ // (b,s,...)
+			Moishezon::normalize_s(&M,details);
+			g=M.h; cont=true;
 		}
 
 		if(!cont && cnt_a+cnt_a2+cnt_b==0){
