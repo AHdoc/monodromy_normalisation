@@ -70,4 +70,13 @@ Tuple<G> bullet(Tuple<G> g1,Tuple<G> g2){
 	return g;
 }
 
+/*************************************************************/
+
+Tuple<Ga3b2> exceptional_tuples[18]={
+	Tuple<Ga3b2>({a2,s0,s2}), Tuple<Ga3b2>({a,t2,t0}), Tuple<Ga3b2>({a,s0,s0,s2,s0}), Tuple<Ga3b2>({a2,t0,t2,t0,t0}), Tuple<Ga3b2>({b,s0,s2,s0}), Tuple<Ga3b2>({b,t0,t2,t0}),
+	Tuple<Ga3b2>({a,b,s2}), Tuple<Ga3b2>({a2,b,t0}), Tuple<Ga3b2>({a,t2,t0,b,t0,t2,t0}), Tuple<Ga3b2>({a2,s0,s2,b,s0,s2,s0}),
+	Tuple<Ga3b2>({a,a,s0,s2}), Tuple<Ga3b2>({a2,a2,t2,t0}), Tuple<Ga3b2>({a2,a2,s0,s0,s2,s0}), Tuple<Ga3b2>({a,a,t0,t2,t0,t0}),
+	Tuple<Ga3b2>({a2,a2,b,s2}), Tuple<Ga3b2>({a,a,b,t0}), Tuple<Ga3b2>({a2,a2,t2,t0,b,t0,t2,t0}), Tuple<Ga3b2>({a,a,s0,s2,b,s0,s2,s0})
+};
+
 #endif

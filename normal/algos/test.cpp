@@ -102,9 +102,9 @@ void test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,boo
 	cout<<"| Step 1 |\n";
 	cout<<"+--------+\n";
 	
-	Tuple<Ga3b2> g(get_normal_form(pa,qa,nb,p,q).second.e),h;
+	Tuple<Ga3b2> g0(get_normal_form(pa,qa,nb,p,q).second.e),g,h,g_final;
+	g=g0;
 	list<vector<int>> F1,F2;
-
 	for(int j=1;j<=100;j++){
 		int i=rand()%(n-1)+1;
 		int epsilon=(rand()%2)*2-1;
@@ -116,8 +116,8 @@ void test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,boo
 	cout<<"+--------+\n";
 	cout<<"| Step 2 |\n";
 	cout<<"+--------+\n";
-	auto ret=transform_into_inverse_free(g,details);
-	h=ret.first; F1=ret.second;
+	auto ret2=transform_into_inverse_free(g,details);
+	h=ret2.first; F1=ret2.second;
 		
 	cout<<"+--------+\n";
 	cout<<"| Step 3 |\n";
@@ -128,7 +128,11 @@ void test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,boo
 	cout<<"| Step 4 |\n";
 	cout<<"+--------+\n";
 	CR<Ga3b2> M; M.init(g); M.Apply(F1); M.Apply(F2); careful_restorations(&M);
-	sort_concatenation(M.h);
+	g_final=sort_concatenation(M.h,details);
+
+	//cout<<"g0      = "<<g0<<"\n";
+	//cout<<"g_final = "<<g_final<<"\n";
+	myassert(g0==g_final,"g0 == g_final");
 
 	cout<<"\n";
 }

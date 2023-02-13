@@ -1,12 +1,3 @@
-Ga3b2 short_elems[9]={
-	Ga3b2({"a"}), Ga3b2({"a^2"}), Ga3b2({"b"}),
-	Ga3b2({"a^2","b"}), Ga3b2({"a","b","a"}), Ga3b2({"b","a^2"}),
-	Ga3b2({"b","a"}), Ga3b2({"a^2","b","a^2"}), Ga3b2({"a","b"})
-};
-
-Ga3b2 a({"a"}),a2({"a^2"}),b({"b"});
-Ga3b2 s0({"a^2","b"}),s1({"a","b","a"}),s2({"b","a^2"}),t0({"b","a"}),t1({"a^2","b","a^2"}),t2({"a","b"});
-
 bool short_table[9][9]={
 	{1, 1, 0, 1, 0, 0, 1, 1, 1},
 	{1, 1, 0, 1, 1, 1, 0, 0, 1},
@@ -855,25 +846,25 @@ list<vector<int>> normalize_inverse_free_tuple(Tuple<Ga3b2> h_input,bool details
 		CR<Ga3b2> M; M.init(g);
 		bool cont=false;
 
-		if(!cont && cnt_a==1 && cnt_s==0){ // (a,t,...)
+		if(!cont && cnt_a==1 && cnt_s==0){ // (a,t,...) ---> (t,...,t) * (a,ti,tj)
 			combine_a_t(&M,details);
 			auto ret=transform_into_inverse_free(M.h,details);
 			M.Apply(ret.second); g=ret.first; cont=true;
 		}
 
-		if(!cont && cnt_a2==1 && cnt_t==0){ // (a^2,s,...)
+		if(!cont && cnt_a2==1 && cnt_t==0){ // (a^2,s,...) ---> (s,...,s) * (a^2,si,sj)
 			combine_a2_s(&M,details);
 			auto ret=transform_into_inverse_free(M.h,details);
 			M.Apply(ret.second); g=ret.first; cont=true;
 		}
 
-		if(!cont && cnt_a==1 && cnt_t==0){ // (a,s,...)
+		if(!cont && (cnt_a==1 || cnt_b==1) && cnt_t==0){ // (a,s,...) or (b,s,...)
 			Moishezon::normalize_s(&M,details);
 			g=M.h; cont=true;
 		}
 
-		if(!cont && cnt_b==1 && cnt_t==0){ // (b,s,...)
-			Moishezon::normalize_s(&M,details);
+		if(!cont && (cnt_a2==1 || cnt_b==1) && cnt_s==0){ // (a^2,t,...) or (b,t,...)
+			Moishezon::normalize_t(&M,details);
 			g=M.h; cont=true;
 		}
 
@@ -894,7 +885,7 @@ list<vector<int>> normalize_inverse_free_tuple(Tuple<Ga3b2> h_input,bool details
 }
 
 
-/**gotcha****************/
+/***gotcha begin***/
 
 /**find (Q^{-1}s_1Q,Q^{-1}t_1Q) and (Q^{-1}t_1Q,Q^{-1}s_1Q)**/
 bool gotcha_s_and_t(CR<Ga3b2>* M,int nh){
@@ -1034,40 +1025,358 @@ bool gotcha_t020202(CR<Ga3b2>* M,int nh){
 	return false;
 }
 
-/**gotcha****************/
+/***gotcha end***/
 
-void sort_concatenation(Tuple<Ga3b2> g_input){
+
+
+/***search begin***/
+
+map<vector<int>,pair<vector<int>,list<vector<int>>>> all_tuples;
+bool cont_search;
+
+void search_tuples_of_short_elements(int n,Tuple<Ga3b2> g,int m,vector<int> idx_h,vector<int> idx_lastg,list<vector<int>> F,int height,bool details){
+	if(!cont_search) return;
+	vector<int> idx_g; idx_g.clear(); for(int i=0;i<n;i++) idx_g.push_back(is_short(g.e[i]));
+
+	if(all_tuples.find(idx_g)!=all_tuples.end()) return;
+	else all_tuples[idx_g]=make_pair(idx_lastg,F);
+
+	if(vector<int>(idx_g.begin()+n-m,idx_g.begin()+n)==idx_h){
+		cont_search=false;
+		return;
+	}
+	if(height>=1000) return; // This is heuristic
+
+	if(details) cout<<"search: "<<g<<"   height="<<height<<"\n";
+
+	Tuple<Ga3b2> g2;
+	list<vector<int>> F2;
+
+	for(int i=1;i<=n-1;i++) for(int epsilon=-1;epsilon<=1;epsilon+=2){
+		F2.clear(); g2=g; g2.Elementary_transformation(i,epsilon); F2.push_back({1,n,i,epsilon});
+		if(each_component_is_short(g2))
+			search_tuples_of_short_elements(n,g2,m,idx_h,idx_g,F2,height+1,details);
+	}
+
+	for(int ii=1,jj;ii<=n;ii=jj+1){
+		jj=ii; Ga3b2 prod=g.e[jj-1];
+		while(prod.len()>0 && jj+1<=n) prod=prod*g.e[jj++];
+		if(prod.len()==0){
+			if(ii==1 && jj==n);
+			else if(jj<n){
+				F2.clear(); g2=g;
+				for(int i=jj;i>=ii;i--){ // move from i to i+1
+					g2.Elementary_transformation(i,-1);
+					F2.push_back({1,n,i,-1});
+				}
+				search_tuples_of_short_elements(n,g2,m,idx_h,idx_g,F2,height+1,details);
+			}else{
+				F2.clear(); g2=g;
+				for(int i=ii;i<=jj;i++) // move from i to i-ii+1
+					for(int j=i-1;j>=i-ii+1;j--){ // move from j+1 to j
+						g2.Elementary_transformation(j,1);
+						F2.push_back({1,n,j,1});
+					}
+				search_tuples_of_short_elements(n,g2,m,idx_h,idx_g,F2,height+1,details);
+			}
+
+			F2.clear(); g2=g;
+			for(int i=ii;i<jj;i++){ // move from i+1 to i
+				g2.Elementary_transformation(i,1);
+				F2.push_back({1,n,i,1});
+			}
+			//cout<<"cyclic permutation from "<<g<<" to "<<g2<<"\n";
+			search_tuples_of_short_elements(n,g2,m,idx_h,idx_g,F2,height+1,details);
+		}
+	}
+}
+
+pair<bool,list<vector<int>>> search(Tuple<Ga3b2> g,Tuple<Ga3b2> h){
+	int n=g.len(),m=h.len();
+	vector<int> idx_h; idx_h.clear(); for(int i=0;i<m;i++) idx_h.push_back(is_short(h.e[i]));
+
+	all_tuples.clear(); cont_search=true;
+	search_tuples_of_short_elements(n,g,m,idx_h,vector<int>(),list<vector<int>>(),0,false);
+
+	for(auto it:all_tuples){
+		vector<int> idx_g=it.first;
+		if(vector<int>(idx_g.begin()+n-m,idx_g.begin()+n)==idx_h){
+			//cout<<"---find a way from "<<g<<" to (...) * "<<h<<"\n";
+			list<vector<int>> F; F.clear();
+			for(vector<int> idx_now_g=idx_g;idx_now_g.size()>0;idx_now_g=all_tuples[idx_now_g].first)
+				F.insert(F.begin(),all_tuples[idx_now_g].second.begin(),all_tuples[idx_now_g].second.end());
+			return make_pair(true,F);
+		}
+	}
+	return make_pair(false,list<vector<int>>());
+}
+
+list<vector<int>> get_minimal_lexicographical_order(Tuple<Ga3b2> g){
+	int n=g.len();
+	all_tuples.clear(); cont_search=true;
+	search_tuples_of_short_elements(n,g,1,{-1},vector<int>(),list<vector<int>>(),0,false);
+
+	for(auto it:all_tuples){
+		vector<int> idx_g=it.first;
+		for(int i=0;i<18;i++){
+			Tuple<Ga3b2> h=exceptional_tuples[i];
+			int m=h.len();
+			vector<int> idx_h; idx_h.clear(); for(int i=0;i<m;i++) idx_h.push_back(is_short(h.e[i]));
+
+			if(idx_g==idx_h){
+				list<vector<int>> F; F.clear();
+				for(vector<int> idx_now_g=idx_g;idx_now_g.size()>0;idx_now_g=all_tuples[idx_now_g].first)
+					F.insert(F.begin(),all_tuples[idx_now_g].second.begin(),all_tuples[idx_now_g].second.end());
+				return F;
+			}
+		}
+	}
+
+	cout<<"---ERROR---\n";
+	cout<<"g="<<g<<"\n";
+	myassert(true,"it is impossible that the resulting tuple is not a known exceptional tuple");
+}
+
+/***search end***/
+
+Tuple<Ga3b2> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 	CR<Ga3b2> MM; MM.init(g_input);
 	int n=g_input.len();
+
+	int m_s=0,m_t=0,m_st=0,m_a=0,m_b=0,n_0=0,n_1=0,m=n;
+	while(gotcha_a2_and_a2_and_a2(&MM,m)) ++n_1, m-=3;
+	while(gotcha_a_and_a_and_a(&MM,m)) ++n_0, m-=3;
+	while(gotcha_b_and_b(&MM,m)) ++m_b, m-=2;
+	while(gotcha_a_and_a(&MM,m)) ++m_a, m-=2;
+	while(gotcha_s_and_t(&MM,m)) ++m_st, m-=2;
+	while(gotcha_t020202(&MM,m)) ++m_t, m-=6;
+	while(gotcha_s020202(&MM,m)) ++m_s, m-=6;
+
+	MM.Apply(shorten_induction(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m)),details,"h").second);
+	cout<<"g="<<MM.h<<"\n";
+
+	/* cheating */
+	
+	Tuple<Ga3b2> h(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m));
+	Tuple<Ga3b2> g; g=h;
+	for(int i=1;i<=m_s ;i++) g=bullet(g, Tuple<Ga3b2>({s0,s2,s0,s2,s0,s2}));
+	for(int i=1;i<=m_t ;i++) g=bullet(g, Tuple<Ga3b2>({t0,t2,t0,t2,t0,t2}));
+	for(int i=1;i<=m_st;i++) g=bullet(g, Tuple<Ga3b2>({s0,t0}));
+	for(int i=1;i<=m_a ;i++) g=bullet(g, Tuple<Ga3b2>({a,a2}));
+	for(int i=1;i<=m_b ;i++) g=bullet(g, Tuple<Ga3b2>({b,b}));
+	for(int i=1;i<=n_0 ;i++) g=bullet(g, Tuple<Ga3b2>({a,a,a}));
+	for(int i=1;i<=n_1 ;i++) g=bullet(g, Tuple<Ga3b2>({a2,a2,a2}));
+	MM.init(g);
+
+	cout<<"===current resulting tuple===\n";
+	cout<<"g="<<MM.h<<"\n";
+	
+	/* -------- */
+	
 	while(gotcha_a_and_a_and_a(&MM,n) && gotcha_a2_and_a2_and_a2(&MM,n)){
 		// (g_{n-5}, g_{n-4}, g_{n-3}, g_{n-2}, g_{n-1}, g_n) = (a, a, a, a^2, a^2, a^2)
 		MM.Elementary_transformation(n-3,-1); // -> (a, a, a^2, a, a^2, a^2)
 		MM.Elementary_transformation(n-2,-1); // -> (a, a, a^2, a^2, a, a^2)
 		MM.Elementary_transformation(n-4,-1); // -> (a, a^2, a, a^2, a, a^2)
+		--n_0; --n_1; m_a+=3;
 	}
+	cout<<"---avoid (a,a,a) and (a^2,a^2,a^2) occurring together---\n";
 	cout<<"g="<<MM.h<<"\n";
 
-	int m_s=0,m_t=0,m_st=0,m_a=0,m_b=0,n_0=0,n_1=0,m=n;
-	
-	while(gotcha_s020202(&MM,m)) ++m_s, m-=6;
-	while(gotcha_t020202(&MM,m)) ++m_t, m-=6;
-	while(gotcha_s_and_t(&MM,m)) ++m_st, m-=2;
-	while(gotcha_a_and_a(&MM,m)) ++m_a, m-=2;
-	while(gotcha_b_and_b(&MM,m)) ++m_b, m-=2;
-	while(gotcha_a_and_a_and_a(&MM,m)) ++n_0, m-=3;
-	while(gotcha_a2_and_a2_and_a2(&MM,m)) ++n_1, m-=3;
+	/* -------- */
 
-	cout<<"===concatenation form===\n";
-	MM.init(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m)));
+	myassert(m_s==0 || m_t==0,"(s0,s2,s0,s2,s0,s2) and (t0,t2,t0,t2,t0,t2) cannot occur together");
+	myassert(n_0==0 || n_1==0,"(a,a,a) and (a^2,a^2,a^2) cannot occur together");
+
+	cout<<"===current concatenation form of the resulting tuple===\n";
+
+	for(;;){
+		if(m==0) break;
+
+		h.init(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m));
+		pair<bool,list<vector<int>>> ret;
+
+		cout<<"---> ";
+		cout<<h;
+		if(m_s >0) cout<<" * (s0,s2,s0,s2,s0,s2)^"<<m_s;
+		if(m_t >0) cout<<" * (t0,t2,t0,t2,t0,t2)^"<<m_t;
+		if(m_st>0) cout<<" * (s0,t0)^"<<m_st;
+		if(m_a >0) cout<<" * (a,a^2)^"<<m_a;
+		if(m_b >0) cout<<" * (b,b)^"<<m_b;
+		if(n_0 >0) cout<<" * (a,a,a)^"<<n_0;
+		if(n_1 >0) cout<<" * (a^2,a^2,a^2)^"<<n_1;
+		cout<<"\n";
+
+		/***increase m_a and m_b***/
+
+		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(h,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
+
+		// if h can end with (a,a^2)
+		if(cnt_a>=1 && cnt_a2>=1){ MM.Apply(search(h, Tuple<Ga3b2>({a,a2})).second); ++m_a; m-=2; continue; }
+
+		// if h can end with (b,b)
+		if(cnt_b>=2){ MM.Apply(search(h, Tuple<Ga3b2>({b,b})).second); ++m_b; m-=2; continue; }
+
+		/***increase m_st***/
+
+		if(cnt_s>=1 && cnt_t>=1){
+			// if h can end with (s0,t0)
+			ret=search(h, Tuple<Ga3b2>({s0,t0}));
+			if(ret.first){ MM.Apply(ret.second); ++m_st; m-=2; continue; }
+			// if h can end with (s1,t1)
+			ret=search(h, Tuple<Ga3b2>({s1,t1}));
+			if(ret.first){ MM.Apply(ret.second); ++m_st; m-=2; continue; }
+			// if h can end with (s2,t2)
+			ret=search(h, Tuple<Ga3b2>({s2,t2}));
+			if(ret.first){ MM.Apply(ret.second); ++m_st; m-=2; continue; }
+		}
+
+		if(cnt_s>=1 && m_t>=1){
+			// if h can end with s0 and m_t>0
+			ret=search(h, Tuple<Ga3b2>({s0}));
+			if(ret.first){
+				MM.Apply(ret.second); gotcha_t020202(&MM,MM.h.len());
+				for(int i=n-5;i<=n;i++) // move from i to i-(n-6)+m
+					for(int j=i-1;j>=i-(n-6)+m;j--) // move from j+1 to j
+						MM.Elementary_transformation(j,1);
+				// Now, M.h starts with (x,x,x,x,s0) * (t0,t2,t0,t2,t0,t2)
+				ret=search(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m+6)), Tuple<Ga3b2>({s0,t0}));
+				MM.Apply(ret.second); --m_t; ++m_st; m+=4; continue;
+			}
+			// if h can end with s1 and m_t>0
+			ret=search(h, Tuple<Ga3b2>({s1}));
+			if(ret.first){
+				MM.Apply(ret.second); gotcha_t020202(&MM,MM.h.len());
+				for(int i=n-5;i<=n;i++) // move from i to i-(n-6)+m
+					for(int j=i-1;j>=i-(n-6)+m;j--) // move from j+1 to j
+						MM.Elementary_transformation(j,1);
+				// Now, M.h starts with (x,x,x,x,s1) * (t0,t2,t0,t2,t0,t2)
+				ret=search(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m+6)), Tuple<Ga3b2>({s1,t1}));
+				MM.Apply(ret.second); --m_t; ++m_st; m+=4; continue;
+			}
+			// if h can end with s2 and m_t>0
+			ret=search(h, Tuple<Ga3b2>({s2}));
+			if(ret.first){
+				MM.Apply(ret.second); gotcha_t020202(&MM,MM.h.len());
+				for(int i=n-5;i<=n;i++) // move from i to i-(n-6)+m
+					for(int j=i-1;j>=i-(n-6)+m;j--) // move from j+1 to j
+						MM.Elementary_transformation(j,1);
+				// Now, M.h starts with (x,x,x,x,s2) * (t0,t2,t0,t2,t0,t2)
+				ret=search(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m+6)), Tuple<Ga3b2>({s2,t2}));
+				MM.Apply(ret.second); --m_t; ++m_st; m+=4; continue;
+			}
+		}
+
+		if(cnt_t>=1 && m_s>=1){
+			// if h can end with t0 and m_s>0
+			ret=search(h, Tuple<Ga3b2>({t0}));
+			if(ret.first){
+				MM.Apply(ret.second); gotcha_s020202(&MM,MM.h.len());
+				for(int i=n-5;i<=n;i++) // move from i to i-(n-6)+m
+					for(int j=i-1;j>=i-(n-6)+m;j--) // move from j+1 to j
+						MM.Elementary_transformation(j,1);
+				// Now, M.h starts with (x,x,x,x,t0) * (s0,s2,s0,s2,s0,s2)
+				ret=search(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m+6)), Tuple<Ga3b2>({s0,t0}));
+				MM.Apply(ret.second); --m_s; ++m_st; m+=4; continue;
+			}
+			// if h can end with s1 and m_t>0
+			ret=search(h, Tuple<Ga3b2>({t1}));
+			if(ret.first){
+				MM.Apply(ret.second); gotcha_s020202(&MM,MM.h.len());
+				for(int i=n-5;i<=n;i++) // move from i to i-(n-6)+m
+					for(int j=i-1;j>=i-(n-6)+m;j--) // move from j+1 to j
+						MM.Elementary_transformation(j,1);
+				// Now, M.h starts with (x,x,x,x,t1) * (s0,s2,s0,s2,s0,s2)
+				ret=search(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m+6)), Tuple<Ga3b2>({s1,t1}));
+				MM.Apply(ret.second); --m_s; ++m_st; m+=4; continue;
+			}
+			// if h can end with s2 and m_t>0
+			ret=search(h, Tuple<Ga3b2>({t2}));
+			if(ret.first){
+				MM.Apply(ret.second); gotcha_s020202(&MM,MM.h.len());
+				for(int i=n-5;i<=n;i++) // move from i to i-(n-6)+m
+					for(int j=i-1;j>=i-(n-6)+m;j--) // move from j+1 to j
+						MM.Elementary_transformation(j,1);
+				// Now, M.h starts with (x,x,x,x,t2) * (s0,s2,s0,s2,s0,s2)
+				ret=search(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m+6)), Tuple<Ga3b2>({s2,t2}));
+				MM.Apply(ret.second); --m_s; ++m_st; m+=4; continue;
+			}
+		}
+
+		/***increase m_a***/
+		if(cnt_a>=1 && n_1>=1){
+			MM.Apply(search(h, Tuple<Ga3b2>({a})).second); gotcha_a2_and_a2_and_a2(&MM,MM.h.len());
+			for(int i=n-2;i<=n;i++) // move from i to i-(n-3)+m
+				for(int j=i-1;j>=i-(n-3)+m;j--) // move from j+1 to j
+					MM.Elementary_transformation(j,1);
+			// Now, M.h starts with (x,x,x,x,a) * (a^2,a^2,a^2)
+			ret=search(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m+3)), Tuple<Ga3b2>({a,a2}));
+			MM.Apply(ret.second); --n_1; ++m_a; ++m; continue;
+		}
+		if(cnt_a2>=1 && n_0>=1){
+			MM.Apply(search(h, Tuple<Ga3b2>({a2})).second); gotcha_a_and_a_and_a(&MM,MM.h.len());
+			for(int i=n-2;i<=n;i++) // move from i to i-(n-3)+m
+				for(int j=i-1;j>=i-(n-3)+m;j--) // move from j+1 to j
+					MM.Elementary_transformation(j,1);
+			// Now, M.h starts with (x,x,x,x,a^2) * (a,a,a)
+			ret=search(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m+3)), Tuple<Ga3b2>({a,a2}));
+			MM.Apply(ret.second); --n_0; ++m_a; ++m; continue;
+		}
+		
+		/***increase m_s and m_t***/
+		if(cnt_s>=6){
+			ret=search(h, Tuple<Ga3b2>({s0,s2,s0,s2,s0,s2}));
+			if(ret.first){ MM.Apply(ret.second); ++m_s; m-=6; continue; }
+		}
+		if(cnt_t>=6){
+			ret=search(h, Tuple<Ga3b2>({t0,t2,t0,t2,t0,t2}));
+			if(ret.first){ MM.Apply(ret.second); ++m_t; m-=6; continue; }
+		}
+
+		/***the exceptional tuple***/
+		auto retF=get_minimal_lexicographical_order(h);
+		MM.Apply(retF); break;
+	}
+
+	int Yn=MM.h.len();
+	int Ym_s=0,Ym_t=0,Ym_st=0,Ym_a=0,Ym_b=0,Yn_0=0,Yn_1=0,Ym=Yn;
+	
+	while(gotcha_a2_and_a2_and_a2(&MM,Ym)) ++Yn_1, Ym-=3;
+	while(gotcha_a_and_a_and_a(&MM,Ym)) ++Yn_0, Ym-=3;
+	while(gotcha_b_and_b(&MM,Ym)) ++Ym_b, Ym-=2;
+	while(gotcha_a_and_a(&MM,Ym)) ++Ym_a, Ym-=2;
+	while(gotcha_s_and_t(&MM,Ym)) ++Ym_st, Ym-=2;
+	while(gotcha_t020202(&MM,Ym)) ++Ym_t, Ym-=6;
+	while(gotcha_s020202(&MM,Ym)) ++Ym_s, Ym-=6;
+	//cout<< n<<" "<< m<<" "<< m_s<<" "<< m_t<<" "<< m_st<<" "<< m_a<<" "<< m_b<<" "<< n_0<<" "<< n_1<<"\n";
+	//cout<<Yn<<" "<<Ym<<" "<<Ym_s<<" "<<Ym_t<<" "<<Ym_st<<" "<<Ym_a<<" "<<Ym_b<<" "<<Yn_0<<" "<<Yn_1<<"\n";
+
+	myassert(n==Yn && m==Ym && m_s==Ym_s && m_t==Ym_t && m_st==Ym_st && m_a==Ym_a && m_b==Ym_b && n_0==Yn_0 & n_1==Yn_1,"same concatenation");
+
+	cout<<"===final normal form===\n";
+	h.init(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+Ym));
 
 	cout<<"---> ";
-	cout<<MM.h;
-	if(m_s >0) cout<<" * (s0,s2,s0,s2,s0,s2)^"<<m_s;
-	if(m_t >0) cout<<" * (t0,t2,t0,t2,t0,t2)^"<<m_t;
-	if(m_st>0) cout<<" * (s0,t0)^"<<m_st;
-	if(m_a >0) cout<<" * (a,a^2)^"<<m_a;
-	if(m_b >0) cout<<" * (b,b)^"<<m_b;
-	if(n_0 >0) cout<<" * (a,a,a)^"<<n_0;
-	if(n_1 >0) cout<<" * (a^2,a^2,a^2)^"<<n_1;
+	cout<<h;
+	if(Ym_s >0) cout<<" * (s0,s2,s0,s2,s0,s2)^"<<Ym_s;
+	if(Ym_t >0) cout<<" * (t0,t2,t0,t2,t0,t2)^"<<Ym_t;
+	if(Ym_st>0) cout<<" * (s0,t0)^"<<Ym_st;
+	if(Ym_a >0) cout<<" * (a,a^2)^"<<Ym_a;
+	if(Ym_b >0) cout<<" * (b,b)^"<<Ym_b;
+	if(Yn_0 >0) cout<<" * (a,a,a)^"<<Yn_0;
+	if(Yn_1 >0) cout<<" * (a^2,a^2,a^2)^"<<Yn_1;
 	cout<<"\n";
+	cout<<" = "<<MM.h<<"\n";
+
+
+	/***check***/
+	{
+		myassert(each_component_is_short(h),"each component of h is short");
+		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(h,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
+		myassert(cnt_a<=2 && cnt_a2<=2 && cnt_b<=1,"cnt_a<=2 && cnt_a2<=2 && cnt_b<=1");
+		myassert(cnt_a==0 || cnt_a2==0,"cnt_a==0 || cnt_a2==0");
+		myassert(cnt_s==0 || cnt_t==0,"cnt_s==0 || cnt_t==0");
+	}
+
+	return MM.h;
 }
