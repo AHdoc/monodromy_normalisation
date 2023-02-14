@@ -595,6 +595,8 @@ pair<Tuple<Ga3b2>,list<vector<int>>> transform_into_inverse_free(Tuple<Ga3b2> g_
 		auto ret=shorten_induction(g,details,"h");
 		MM.Apply(ret.second); g=ret.first;
 		myassert(each_component_is_short(g),"after the shorten_induction, each component must be short");
+		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(g,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
+		myassert(cnt_a<=2 && cnt_a2<=2 && cnt_b<=1 && (cnt_a==0 || cnt_a2==0),"after the shorten_induction, cnt_a<=2 && cnt_a2<=2 && cnt_b<=1 && (cnt_a==0 || cnt_a2==0)");
 
 		cout<<"| ===get a tuple of short elements==\n";
 		cout<<"| h="<<g<<"\n";
@@ -1139,7 +1141,7 @@ list<vector<int>> get_minimal_lexicographical_order(Tuple<Ga3b2> g){
 
 /***search end***/
 
-Tuple<Ga3b2> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
+pair<Tuple<Ga3b2>,int> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 	CR<Ga3b2> MM; MM.init(g_input);
 	int n=g_input.len();
 
@@ -1154,8 +1156,18 @@ Tuple<Ga3b2> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 
 	MM.Apply(shorten_induction(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m)),details,"h").second);
 	cout<<"g="<<MM.h<<"\n";
+	int length_exceptional_part=m;
 
-	/* cheating */
+	{
+		Tuple<Ga3b2> h(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m));
+		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(h,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
+		if(m>0){
+			myassert(cnt_a<=2 && cnt_a2<=2 && cnt_b<=1 && (cnt_a==0 || cnt_a2==0),"h.len()>0");
+			myassert(cnt_a+cnt_a2+cnt_b>0 || abs(cnt_s-cnt_t)>0,"h.len()>0");
+		}
+	}
+
+	/* apply diagonal conjugacies on subtuples with prod=1 */
 	
 	Tuple<Ga3b2> h(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m));
 	Tuple<Ga3b2> g; g=h;
@@ -1168,7 +1180,7 @@ Tuple<Ga3b2> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 	for(int i=1;i<=n_1 ;i++) g=bullet(g, Tuple<Ga3b2>({a2,a2,a2}));
 	MM.init(g);
 
-	cout<<"===current resulting tuple===\n";
+	cout<<"===after diagonal conjugacies on subtuples===\n";
 	cout<<"g="<<MM.h<<"\n";
 	
 	/* -------- */
@@ -1378,5 +1390,5 @@ Tuple<Ga3b2> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 		myassert(cnt_s==0 || cnt_t==0,"cnt_s==0 || cnt_t==0");
 	}
 
-	return MM.h;
+	return make_pair(MM.h,length_exceptional_part);
 }

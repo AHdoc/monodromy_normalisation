@@ -76,7 +76,7 @@ void test_CR(){
 	}
 }
 
-void test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool details){
+int test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool details){
 	string str1="+---------------------+";
 	string str2="|  Test Case "+to_string(testnum);
 	while(str2.size()+1<str1.size()) str2=str2+" "; str2=str2+"|";
@@ -88,14 +88,22 @@ void test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,boo
 	cout<<"        - nb of them are conjugates of b;\n";
 	cout<<"        - p of them are conjugates of aba;\n";
 	cout<<"        - q of them are conjugates of a^2ba^2.\n";
-	cout<<"    - Step 2: shorten g=(g1,...,gn) and make it inverse-free#\n";
-	cout<<"        transform/contract (g1,...,gn) into (h1,...,hm) * (y,y^{-1}) * (x,x^{-1}) * ... * (l,l,l) * ..., where:\n";
-	cout<<"        - (h1,...,hm) and (y,y^{-1}) are iterated tuples of short elements\n";
+	cout<<"    - Step 2: shorten g=(g1,...,gn) and make it inverse-free\n";
+	cout<<"        transform/contract (g1,...,gn) into (h1,...,hm) * (y,y^{-1})^e * (x,x^{-1}) * ... * (l,l,l) * ..., where:\n";
+	cout<<"        - (h1,...,hm) and (y,y^{-1}) are iterated tuples of short elements, e = 0 or 1\n";
 	cout<<"        - one of h and k is of height 3, the other is of height 1\n";
 	cout<<"        - (h1,...,hm) is inverse-free and contains at most 1 component being a, a^2 or b\n";
 	cout<<"        - all pairs of the form (x,x^{-1}) and triples of the form (l,l,l) with l^3=1 are of height 1\n";
+	cout<<"        - the restoration of (h1,...,hm) * (y,y^{-1})^e contains\n";
+	cout<<"            - contains at most 2 components conjugate to a\n";
+	cout<<"            - contains at most 2 components conjugate to a^2\n";
+	cout<<"            - contains at most 1 component conjugate to b\n";
+	cout<<"            - either contains no component conjugate to a or contains no component conjugate to a^2\n";
 	cout<<"    - Step 3: normalize (h1,...hm)\n";
+	cout<<"            - it is contracted/transformed into (s0,s2,s0,s2,s0,s2)^? * (t0,t2,t0,t2,t0,t2)^? * (s_i,t_i)^?\n";
 	cout<<"    - Step 4: write the resulting tuple as a desired concatenation\n";
+	cout<<"            - Step 4.1: restore the resulting tuple\n";
+	cout<<"            - Step 4.2: handle the exceptional part, which is a tuple of length <= 8\n";
 	cout<<"\n";
 
 	cout<<"+--------+\n";
@@ -128,13 +136,15 @@ void test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,boo
 	cout<<"| Step 4 |\n";
 	cout<<"+--------+\n";
 	CR<Ga3b2> M; M.init(g); M.Apply(F1); M.Apply(F2); careful_restorations(&M);
-	g_final=sort_concatenation(M.h,details);
+	auto ret4=sort_concatenation(M.h,details);
+	g_final=ret4.first;
 
 	//cout<<"g0      = "<<g0<<"\n";
 	//cout<<"g_final = "<<g_final<<"\n";
 	myassert(g0==g_final,"g0 == g_final");
 
 	cout<<"\n";
+	return ret4.second;
 }
 
 void multi_test_normalize_short(bool details){
@@ -144,6 +154,7 @@ void multi_test_normalize_short(bool details){
 
 	cout<<"Input t for the number of test cases.\n";
 	int test; cin>>test;
+	int max_length_exceptional_part=0;
 
 	for(int t=1;t<=test;t++){
 		n=rand()%(nr-nl+1)+nl;
@@ -160,6 +171,9 @@ void multi_test_normalize_short(bool details){
 			}
 			if(get_normal_form(pa,qa,nb,p,q).first) break;
 		}
-		test_normalize_short(t,n,pa,qa,nb,p,q,details);
+		int length_exceptional_part=test_normalize_short(t,n,pa,qa,nb,p,q,details);
+		if(length_exceptional_part>max_length_exceptional_part) max_length_exceptional_part=length_exceptional_part;
 	}
+
+	//cout<<"max_length_exceptional_part = "<<max_length_exceptional_part<<"\n";
 }
