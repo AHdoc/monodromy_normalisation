@@ -162,12 +162,12 @@ void multi_test_normalize_short(bool details){
 		for(;;){
 			pa=0,qa=0,nb=0,p=0,q=0;
 			for(int i=1;i<=n;i++){
-				int o=rand()%5;
+				int o=rand()%10;
 				if(o==0) ++pa;
 				if(o==1) ++qa;
 				if(o==2) ++nb;
 				if(o==3) ++p;
-				if(o==4) ++q;
+				if(o>=4) ++q; // I prefer more components conjugate to ba=t0
 			}
 			if(get_normal_form(pa,qa,nb,p,q).first) break;
 		}
