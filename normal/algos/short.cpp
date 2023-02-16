@@ -102,9 +102,8 @@ bool Operation2(CR<Ga3b2>* M){
 /*--Elementary transformation avoiding that a short becomes long--------------*/
 bool Operation3(CR<Ga3b2>* M,int il,int ir){ // restrict that 1<=il<=i<=ir<=n-1
 	for(int i=il;i<=ir;i++) for(int epsilon=-1;epsilon<=1;epsilon+=2){
-		int x=i-(epsilon+1)/2,y=i+(epsilon-1)/2;
 		Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i,epsilon);
-		if(S_complexity(h1)<S_complexity(M->h) && !(is_short(M->h.e[x])>=0 && is_short(h1.e[y])==-1)){
+		if(S_complexity(h1)<S_complexity(M->h)){
 			M->Elementary_transformation(i,epsilon);
 			return true;
 		}
@@ -113,14 +112,9 @@ bool Operation3(CR<Ga3b2>* M,int il,int ir){ // restrict that 1<=il<=i<=ir<=n-1
 	  we have to consider a sequence of elementary transformtaions of length 2.*/
 	for(int i1=il;i1<=ir;i1++) for(int epsilon1=-1;epsilon1<=1;epsilon1+=2)
 		for(int i2=il;i2<=ir;i2++) for(int epsilon2=-1;epsilon2<=1;epsilon2+=2){
-			int x1=i1-(epsilon1+1)/2,y1=i1+(epsilon1-1)/2;
-			int x2=i2-(epsilon2+1)/2,y2=i2+(epsilon2-1)/2;
 			Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i1,epsilon1);
-			Tuple<Ga3b2> h2=h1 ; h2.Elementary_transformation(i2,epsilon2);
-			if(S_complexity(h2)<S_complexity(M->h) &&
-				!(is_short(M->h.e[x1])>=0 && is_short(h1.e[y1])==-1) &&
-				!(is_short(h1.e[x2])>=0 && is_short(h2.e[y2])==-1)
-			){
+			Tuple<Ga3b2> h2=h1  ; h2.Elementary_transformation(i2,epsilon2);
+			if(S_complexity(M->h)==S_complexity(h1) && S_complexity(h1)>S_complexity(h2)){
 				M->Elementary_transformation(i1,epsilon1);
 				M->Elementary_transformation(i2,epsilon2);
 				return true;
@@ -129,22 +123,12 @@ bool Operation3(CR<Ga3b2>* M,int il,int ir){ // restrict that 1<=il<=i<=ir<=n-1
 	return false;
 }
 
-/*--Handle the case h_i=Q^{-1}aQ and l(h_{-1})>l(h_i)--------------*/
+/*--Handle the case h_i=Q^{-1}aQ and l(h_{i-1})>l(h_i)--------------*/
 bool Operation4(CR<Ga3b2>* M){
 	int n=M->h.len();
 	for(int i=2;i<=n;i++){
-		Ga3b2 gi=M->h.e[i-1];
-		if(gi.len()==0) continue;
-		else if(is_short(gi)==-1 && (gi.e[gi.len()/2]=="a" || gi.e[gi.len()/2]=="a^2")); // gi=Q^{-1}aQ or Q^{-1}a^2Q
-		else if(is_short(gi)==0 || is_short(gi)==1); // gi=a or gi=a^2
-		else continue;
-
-		int x=i-1-1,y=i-1;
 		Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i-1,1);
-		if(S_complexity(h1)<=S_complexity(M->h) &&
-			!(is_short(M->h.e[x])>=0 && is_short(h1.e[y])==-1) &&
-			h1.e[i-2].len()<M->h.e[i-2].len()
-		){
+		if(S_complexity(h1)<=S_complexity(M->h) && h1.e[i-2].len()<M->h.e[i-2].len()){
 			M->Elementary_transformation(i-1,1);
 			return true;
 		}
