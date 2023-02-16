@@ -128,7 +128,7 @@ bool Operation4(CR<Ga3b2>* M){
 	int n=M->h.len();
 	for(int i=2;i<=n;i++){
 		Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i-1,1);
-		if(S_complexity(h1)<=S_complexity(M->h) && h1.e[i-2].len()<M->h.e[i-2].len()){
+		if(S_complexity(h1)==S_complexity(M->h) && h1.e[i-2].len()<M->h.e[i-2].len()){
 			M->Elementary_transformation(i-1,1);
 			return true;
 		}
@@ -240,8 +240,8 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 
 		/***********/
 
-		if(find_triple(&M,&g_non_inverse_free,&F)) continue;
 		if(find_pair(&M,&g_non_inverse_free,&F))   continue;
+		if(find_triple(&M,&g_non_inverse_free,&F)) continue;
 
 		/***********/
 		// Fron now on, each component of M.h is short;
