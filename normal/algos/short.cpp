@@ -193,10 +193,57 @@ void careful_restorations(CR<Ga3b2>* M){
 	}
 }
 
+/***************************/
+void get_cnts(Tuple<Ga3b2> g,int* cnt_a,int* cnt_a2,int* cnt_b,int* cnt_s,int* cnt_t){
+	*cnt_a=0,*cnt_a2=0,*cnt_b=0,*cnt_s=0,*cnt_t=0;
+	for(Ga3b2 x:g.e){
+		if(x==a)  ++*cnt_a;
+		if(x==a2) ++*cnt_a2;
+		if(x==b)  ++*cnt_b;
+		if(x==s0||x==s1||x==s2) ++*cnt_s;
+		if(x==t0||x==t1||x==t2) ++*cnt_t;
+	}
+}
+
+vector<int> get_positions(Tuple<Ga3b2> g,Ga3b2 x){
+	vector<int> poss; poss.clear();
+	int n=g.len();
+	for(int i=1;i<=n;i++)
+		if(g.e[i-1]==x)
+			poss.push_back(i);
+	return poss;
+}
+
+void cyclic_permutation(CR<Ga3b2>* M){ // transform (h1,...,hn) into (h2,...,hn,h1); transform (H1,...,Hn) into (H2,...,Hn,H1).
+	int n=M->h.len();
+	for(int i=1;i<=n-1;i++) M->Elementary_transformation(i,1);
+}
+
+/* Suppose that h1***h_{n2}=1.
+   We transform (h1,...,h_{n2},...) into (h_{n2},h1,...,h_{n2-1},...);
+      transform (H1,...,H_{n2},...) into (H_{n2},H1,...,H_{n2-1},...).
+}
+*/
+void cyclic_permutation_inv(CR<Ga3b2>* M,int n2){
+	Ga3b2 prod; prod.be_identity();
+	for(int i=1;i<=n2;i++) prod=prod*M->h.e[i-1];
+	myassert(prod.len()==0,"prod=1");
+	
+	for(int i=n2-1;i>=1;i--) M->Elementary_transformation(i,-1);
+}
+
+void cyclic_permutation_inv(CR<Ga3b2>* M){ // transform (h1,...,hn) into (hn,h1,...,h_{n-1}); transform (H1,...,Hn) into (Hn,H1,...,H_{n-1}).
+	int n=M->h.len();
+	for(int i=n-1;i>=1;i--) M->Elementary_transformation(i,-1);
+}
+
+/******************/
+
 /*--an induction that--------------*/
 /*----transform (g1,...,gn) in Ga3b2 whose components are conjuagates of short elements--*/
 /*----into-(h1,...,hm) bullet g_non_inverse_free--------------------------------------------*/
 /*--s.t. each component of (h1,...,hm) is short--*/
+/*-------there are <=2 a, <=2 a^2, <=1 b, and either there is no a or there is no a^2--*/
 /*--return mp(h,F)--*/
 pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool details,string namestr){
 	cout<<"| +====start the shorten_induction on "+namestr+" (use h to denote the tuple in this process)===\n";
@@ -268,55 +315,15 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 	}
 	myassert(g==bullet(M.h,g_non_inverse_free),"g==h dot g_non_inverse_free");
 	cout<<"| +==="+namestr+" is transformed into  \"h bullet g_non_inverse_free\"  by "<<F.size()<<" elementary transformations\n";
-	// return something
+
+	myassert(each_component_is_short(M.h),"after the shorten_induction, each component must be short");
+	int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(M.h,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
+	myassert(cnt_a<=2 && cnt_a2<=2 && cnt_b<=1 && (cnt_a==0 || cnt_a2==0),"after the shorten_induction, cnt_a<=2 && cnt_a2<=2 && cnt_b<=1 && (cnt_a==0 || cnt_a2==0)");
+
 	return make_pair(M.h,F);
 }
 
 /***************************/
-void get_cnts(Tuple<Ga3b2> g,int* cnt_a,int* cnt_a2,int* cnt_b,int* cnt_s,int* cnt_t){
-	*cnt_a=0,*cnt_a2=0,*cnt_b=0,*cnt_s=0,*cnt_t=0;
-	for(Ga3b2 x:g.e){
-		if(x==a)  ++*cnt_a;
-		if(x==a2) ++*cnt_a2;
-		if(x==b)  ++*cnt_b;
-		if(x==s0||x==s1||x==s2) ++*cnt_s;
-		if(x==t0||x==t1||x==t2) ++*cnt_t;
-	}
-}
-
-vector<int> get_positions(Tuple<Ga3b2> g,Ga3b2 x){
-	vector<int> poss; poss.clear();
-	int n=g.len();
-	for(int i=1;i<=n;i++)
-		if(g.e[i-1]==x)
-			poss.push_back(i);
-	return poss;
-}
-
-void cyclic_permutation(CR<Ga3b2>* M){ // transform (h1,...,hn) into (h2,...,hn,h1); transform (H1,...,Hn) into (H2,...,Hn,H1).
-	int n=M->h.len();
-	for(int i=1;i<=n-1;i++) M->Elementary_transformation(i,1);
-}
-
-/* Suppose that h1***h_{n2}=1.
-   We transform (h1,...,h_{n2},...) into (h_{n2},h1,...,h_{n2-1},...);
-      transform (H1,...,H_{n2},...) into (H_{n2},H1,...,H_{n2-1},...).
-}
-*/
-void cyclic_permutation_inv(CR<Ga3b2>* M,int n2){
-	Ga3b2 prod; prod.be_identity();
-	for(int i=1;i<=n2;i++) prod=prod*M->h.e[i-1];
-	myassert(prod.len()==0,"prod=1");
-	
-	for(int i=n2-1;i>=1;i--) M->Elementary_transformation(i,-1);
-}
-
-void cyclic_permutation_inv(CR<Ga3b2>* M){ // transform (h1,...,hn) into (hn,h1,...,h_{n-1}); transform (H1,...,Hn) into (Hn,H1,...,H_{n-1}).
-	int n=M->h.len();
-	for(int i=n-1;i>=1;i--) M->Elementary_transformation(i,-1);
-}
-
-/******************/
 
 namespace tuple_of_short_elements{
 	/**investigate a tuple of short elements such that**/
@@ -578,9 +585,6 @@ pair<Tuple<Ga3b2>,list<vector<int>>> transform_into_inverse_free(Tuple<Ga3b2> g_
 	for(;;){
 		auto ret=shorten_induction(g,details,"h");
 		MM.Apply(ret.second); g=ret.first;
-		myassert(each_component_is_short(g),"after the shorten_induction, each component must be short");
-		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(g,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
-		myassert(cnt_a<=2 && cnt_a2<=2 && cnt_b<=1 && (cnt_a==0 || cnt_a2==0),"after the shorten_induction, cnt_a<=2 && cnt_a2<=2 && cnt_b<=1 && (cnt_a==0 || cnt_a2==0)");
 
 		cout<<"| ===get a tuple of short elements==\n";
 		cout<<"| h="<<g<<"\n";
