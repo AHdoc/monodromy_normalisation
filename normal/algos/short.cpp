@@ -494,102 +494,14 @@ namespace tuple_of_short_elements{
 						return n-2;
 					}
 				}
-				// a,...,s_{i+1},...,t_i
-				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++){
-					if(M->h.e[0]!=a) continue;
-					if((M->h.e[i-1]==s1 && M->h.e[j-1]==t0)||
-					   (M->h.e[i-1]==s2 && M->h.e[j-1]==t1)||
-					   (M->h.e[i-1]==s0 && M->h.e[j-1]==t2)){
-						for(int l=j;l<=n-1;l++) M->Elementary_transformation(l,-1);
-						for(int l=i;l<=n-2;l++) M->Elementary_transformation(l,-1);
-						for(int l=1;l<=n-3;l++) M->Elementary_transformation(l,-1);
-						M->Elementary_transformation(n-2,-1); // (s_i,a,t_i)
-						M->Elementary_transformation(n-2,-1); // (*,s_i,t_i)
-						return n-2;
-					}
-				}
-				// a^2,...,s_i,...,t_{i+1}
-				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++){
-					if(M->h.e[0]!=a2) continue;
-					if((M->h.e[i-1]==s0 && M->h.e[j-1]==t1)||
-					   (M->h.e[i-1]==s1 && M->h.e[j-1]==t2)||
-					   (M->h.e[i-1]==s2 && M->h.e[j-1]==t0)){
-						for(int l=j;l<=n-1;l++) M->Elementary_transformation(l,-1);
-						for(int l=i;l<=n-2;l++) M->Elementary_transformation(l,-1);
-						for(int l=1;l<=n-3;l++) M->Elementary_transformation(l,-1);
-						M->Elementary_transformation(n-2,-1); // (s_{i+1},a^2,t_{i+1})
-						M->Elementary_transformation(n-2,-1); // (*,s_{i+1},t_{i+1})
-						return n-2;
-					}
-				}
-				// b,...,s0,...,t2 or b,...,s2,...,t0
-				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++){
-					if(M->h.e[0]!=b) continue;
-					if((M->h.e[i-1]==s0 && M->h.e[j-1]==t2)||(M->h.e[i-1]==s2 && M->h.e[j-1]==t0)){
-						for(int l=j;l<=n-1;l++) M->Elementary_transformation(l,-1);
-						for(int l=i;l<=n-2;l++) M->Elementary_transformation(l,-1);
-						for(int l=1;l<=n-3;l++) M->Elementary_transformation(l,-1);
-						M->Elementary_transformation(n-2,-1); // (s2,b,t2) or (s0,b,t0)
-						M->Elementary_transformation(n-2,-1); // (*,s_i,t_i)
-						return n-2;
-					}
-				}
 
 				set<int> As,At; As.clear(); At.clear();
 				for(int i=1;i<=n;i++){
 					if     (M->h.e[i-1]==s0 || M->h.e[i-1]==s1 || M->h.e[i-1]==s2) As.insert(is_short(M->h.e[i-1]));
 					else if(M->h.e[i-1]==t0 || M->h.e[i-1]==t1 || M->h.e[i-1]==t2) At.insert(is_short(M->h.e[i-1]));
 				}
-				if(As.size()==0 || At.size()==0) return n;
-
-				myassert((As.size()==1 && At.size()==2)||(As.size()==2 && At.size()==1),"either |As|==1, |At|==2 or |As|==2, |At|==1");
-				myassert(M->h.e[0]==b,"the tuple must start with b");
-				if(As.size()==1 && At.size()==2){
-					// b,s1,...,s1,t0,...,t0,t2,...,t2
-					int u=0; while(1+    (u+1)<=n && M->h.e[1+    (u+1)-1]==s1) ++u;
-					int v=0; while(1+u+  (v+1)<=n && M->h.e[1+u+  (v+1)-1]==t0) ++v;
-					int w=0; while(1+u+v+(w+1)<=n && M->h.e[1+u+v+(w+1)-1]==t2) ++w;
-					myassert(1+u+v+w==n && u>0 && v>0 && w>0,"the tuple must be of the form (b,s1,...,s1,t0,...,t0,t2,...,t2");
-
-					for(int i=1;i<=v+w;i++) cyclic_permutation_inv(M); // t0,...,t0,t2,...,t2,b,s1,...,s1
-					for(int i=v+w;i>=1;i--) M->Elementary_transformation(i,1); // b,t2,...,t2,t0,...t0,s1,...s1
-					// t_{i+1},...,t_{i+2},...,s_i
-					for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
-						if((M->h.e[i-1]==t2 && M->h.e[j-1]==t1 && M->h.e[k-1]==s0)||
-						   (M->h.e[i-1]==t0 && M->h.e[j-1]==t2 && M->h.e[k-1]==s1)||
-						   (M->h.e[i-1]==t1 && M->h.e[j-1]==t0 && M->h.e[k-1]==s2)){
-							for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
-							for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
-							for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
-							M->Elementary_transformation(n-2,1); // (t_{i+2},t_i,s_i)
-							return n-2;
-						}
-					}
-					myassert(true,"ERROR");
-				}else if(As.size()==2 && At.size()==1){
-					// b,s2,...,s2,s0,...,s0,t1,...,t1
-					int u=0; while(1+    (u+1)<=n && M->h.e[1+    (u+1)-1]==s2) ++u;
-					int v=0; while(1+u+  (v+1)<=n && M->h.e[1+u+  (v+1)-1]==s0) ++v;
-					int w=0; while(1+u+v+(w+1)<=n && M->h.e[1+u+v+(w+1)-1]==t1) ++w;
-					myassert(1+u+v+w==n && u>0 && v>0 && w>0,"the tuple must be of the form (b,s2,...,s2,s0,...,s0,t1,...,t1");
-
-					for(int i=1;i<=1+u+v;i++) cyclic_permutation(M); // t1,...,t1,b,s2,...,s2,s0,...,s0
-					for(int i=w+1;i<n;i++) M->Elementary_transformation(i,-1); // t1,...,t1,s0,...,s0,s2,...,s2,b
-					// t_{i},...,s_{i+2},...,s_{i+1}
-					for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
-						if((M->h.e[i-1]==t0 && M->h.e[j-1]==s2 && M->h.e[k-1]==s1)||
-						   (M->h.e[i-1]==t1 && M->h.e[j-1]==s0 && M->h.e[k-1]==s2)||
-						   (M->h.e[i-1]==t2 && M->h.e[j-1]==s1 && M->h.e[k-1]==s0)){
-							for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
-							for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
-							for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
-							M->Elementary_transformation(n-1,1); // (t_i,s_{i+1},s_i)
-							M->Elementary_transformation(n-2,-1); // (*,t_i,s_i)
-							return n-2;
-						}
-					}
-					myassert(true,"ERROR");
-				}
+				myassert(As.size()==0 || At.size()==0,"As.size()==0 || At.size()==0");
+				return n;
 			}
 		}
 	}
