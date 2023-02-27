@@ -88,31 +88,24 @@ int test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool
 	cout<<"        - nb of them are conjugates of b;\n";
 	cout<<"        - p of them are conjugates of aba;\n";
 	cout<<"        - q of them are conjugates of a^2ba^2.\n";
-	cout<<"    - Step 2: shorten g=(g1,...,gn) and make it inverse-free\n";
-	cout<<"        transform/contract (g1,...,gn) into (h1,...,hm) * (y,y^{-1})^e * (x,x^{-1}) * ... * (l,l,l) * ..., where:\n";
-	cout<<"        - (h1,...,hm) and (y,y^{-1}) are iterated tuples of short elements, e = 0 or 1\n";
-	cout<<"        - one of h and k is of height 3, the other is of height 1\n";
-	cout<<"        - (h1,...,hm) is inverse-free and contains at most 1 component being a, a^2 or b\n";
-	cout<<"        - all pairs of the form (x,x^{-1}) and triples of the form (l,l,l) with l^3=1 are of height 1\n";
-	cout<<"        - the restoration of (h1,...,hm) * (y,y^{-1})^e contains\n";
-	cout<<"            - contains at most 2 components conjugate to a\n";
-	cout<<"            - contains at most 2 components conjugate to a^2\n";
-	cout<<"            - contains at most 1 component conjugate to b\n";
-	cout<<"            - either contains no component conjugate to a or contains no component conjugate to a^2\n";
-	cout<<"    - Step 3: normalize (h1,...hm)\n";
-	cout<<"            - it is contracted/transformed into (s0,s2,s0,s2,s0,s2)^? * (t0,t2,t0,t2,t0,t2)^? * (s_i,t_i)^?\n";
-	cout<<"    - Step 4: write the resulting tuple as a desired concatenation\n";
-	cout<<"            - Step 4.1: restore the resulting tuple\n";
-	cout<<"            - Step 4.2: handle the exceptional part, which is a tuple of length <= 8\n";
+	cout<<"    - Step 2: transform (g1,...,gn) into (h1,...,hm) * several pairs (x,x^{-1}) and triples (l,l,l) with l^3=1\n";
+	cout<<"        - where (h1,...,hm) is a tuple of short elements--\n";
+	cout<<"    - Step 3: transform/contract (h1,...,hm) into (k1,...,kl)\n";
+	cout<<"        - where (k1,...,kl) is an inverse-free tuple of short elements containing <=1 component equal to a/a^2/b\n";
+	cout<<"    - Step 4: contract/normalize (k1,...,kl)\n";
+	cout<<"        - into (s0,s2,s0,s2,s0,s2)^? * (t0,t2,t0,t2,t0,t2)^? * (s_i,t_i)^?\n";
+	cout<<"    - Step 5: write the resulting tuple as a desired concatenation\n";
+	cout<<"        - Step 5.1: restore the resulting tuple\n";
+	cout<<"        - Step 5.2: handle the exceptional part, which is a tuple of finite length\n";
 	cout<<"\n";
 
 	cout<<"+--------+\n";
 	cout<<"| Step 1 |\n";
 	cout<<"+--------+\n";
 	
-	Tuple<Ga3b2> g0(get_normal_form(pa,qa,nb,p,q).second.e),g,h,g_final;
+	Tuple<Ga3b2> g0(get_normal_form(pa,qa,nb,p,q).second.e),g,h,k,g_final;
 	g=g0;
-	list<vector<int>> F1,F2;
+	list<vector<int>> F; F.clear();
 	for(int j=1;j<=100;j++){
 		int i=rand()%(n-1)+1;
 		int epsilon=(rand()%2)*2-1;
@@ -124,27 +117,32 @@ int test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool
 	cout<<"+--------+\n";
 	cout<<"| Step 2 |\n";
 	cout<<"+--------+\n";
-	auto ret2=transform_into_inverse_free(g,details);
-	h=ret2.first; F1=ret2.second;
-		
+	auto ret2=shorten_induction(g,details,"g");
+	h=ret2.first; F.insert(F.end(),ret2.second.begin(),ret2.second.end());
+
 	cout<<"+--------+\n";
 	cout<<"| Step 3 |\n";
 	cout<<"+--------+\n";
-	F2=normalize_inverse_free_tuple(h,details);
-
+	auto ret3=transform_into_inverse_free(h,details,"h");
+	k=ret3.first; F.insert(F.end(),ret3.second.begin(),ret3.second.end());
+	
 	cout<<"+--------+\n";
 	cout<<"| Step 4 |\n";
 	cout<<"+--------+\n";
-	CR<Ga3b2> M; M.init(g); M.Apply(F1); M.Apply(F2); careful_restorations(&M);
-	auto ret4=sort_concatenation(M.h,details);
-	g_final=ret4.first;
+	auto ret4=normalize_inverse_free_tuple(k,details,"k");
+	F.insert(F.end(),ret4.begin(),ret4.end());
 
-	//cout<<"g0      = "<<g0<<"\n";
-	//cout<<"g_final = "<<g_final<<"\n";
+	cout<<"+--------+\n";
+	cout<<"| Step 5 |\n";
+	cout<<"+--------+\n";
+	CR<Ga3b2> M; M.init(g); M.Apply(F); careful_restorations(&M);
+	auto ret5=sort_concatenation(M.h,details);
+	g_final=ret5.first;
+
 	myassert(g0==g_final,"g0 == g_final");
 
 	cout<<"\n";
-	return ret4.second;
+	return ret5.second;
 }
 
 void multi_test_normalize_short(bool details){
@@ -175,5 +173,5 @@ void multi_test_normalize_short(bool details){
 		if(length_exceptional_part>max_length_exceptional_part) max_length_exceptional_part=length_exceptional_part;
 	}
 
-	//cout<<"max_length_exceptional_part = "<<max_length_exceptional_part<<"\n";
+	cout<<"max_length_exceptional_part = "<<max_length_exceptional_part<<"\n";
 }
