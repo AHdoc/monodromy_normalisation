@@ -135,7 +135,7 @@ int test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool
 	cout<<"+--------+\n";
 	cout<<"| Step 4 |\n";
 	cout<<"+--------+\n";
-	CR<Ga3b2> M; M.init(g); M.Apply(F); careful_restorations(&M);
+	CR<Ga3b2> M; M.init(g); M.Apply(F); careful_restorations(&M,true);
 	auto ret5=sort_concatenation(M.h,details);
 	g_final=ret5.first;
 

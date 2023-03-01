@@ -187,12 +187,18 @@ bool find_pair(CR<Ga3b2>* M,Tuple<Ga3b2>* g_non_inverse_free,list<vector<int>>* 
 }
 
 /* Restore a short element to a pair of short elements */
-void careful_restorations(CR<Ga3b2>* M){
+void careful_restorations(CR<Ga3b2>* M,bool details){
+	if(details) cout<<"~~~careful_restorations M~~~\n";
+	if(details) cout<<"h = "<<M->h<<"\n";
+	if(details) cout<<"H = "<<M->H<<"\n";
 	for(;;){
 		int k=M->Restoration();
 		if(k==-1) break;
 		while(Operation3(M,k,k)) continue;
+		if(details) cout<<"--> "<<M->h<<"\n";
+		if(details) cout<<"    "<<M->H<<"\n";
 	}
+	if(details) cout<<"~~~~~~\n";
 }
 
 /***************************/
@@ -266,7 +272,7 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 		break;
 	}
 	/***********/
-	careful_restorations(&M);
+	careful_restorations(&M,false);
 
 	g_non_inverse_free.clear();
 	F.clear();
@@ -1165,14 +1171,15 @@ pair<Tuple<Ga3b2>,int> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 	while(gotcha_t020202(&MM,m)) ++m_t, m-=6;
 	while(gotcha_s020202(&MM,m)) ++m_s, m-=6;
 
-	MM.Apply(shorten_induction(Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m)),details,"h").second);
+	Tuple<Ga3b2> h(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m));
+	myassert(each_component_is_short(h),"h=g_excep is a tuple of short elements");
+
 	cout<<"===exceptional part===\n";
 	cout<<"g      ="<<MM.h<<"\n";
-	cout<<"g_excep="<<Tuple<Ga3b2>(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m))<<"\n";
+	cout<<"g_excep="<<h<<"\n";
 	int length_exceptional_part=m;
 
 	{
-		Tuple<Ga3b2> h(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m));
 		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(h,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
 		if(m>0){
 			myassert(cnt_a<=2 && cnt_a2<=2 && cnt_b<=1 && (cnt_a==0 || cnt_a2==0),"h.len()>0");
@@ -1182,7 +1189,6 @@ pair<Tuple<Ga3b2>,int> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 
 	/* apply diagonal conjugacies on subtuples with prod=1 */
 	
-	Tuple<Ga3b2> h(vector<Ga3b2>(MM.h.e.begin(),MM.h.e.begin()+m));
 	Tuple<Ga3b2> g; g=h;
 	for(int i=1;i<=m_s ;i++) g=bullet(g, Tuple<Ga3b2>({s0,s2,s0,s2,s0,s2}));
 	for(int i=1;i<=m_t ;i++) g=bullet(g, Tuple<Ga3b2>({t0,t2,t0,t2,t0,t2}));
