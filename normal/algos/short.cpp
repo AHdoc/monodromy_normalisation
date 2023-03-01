@@ -441,69 +441,67 @@ namespace tuple_of_short_elements{
 			bool ok=true;
 			for(int i=1;ok && i<=n-1;i++){ // avoid the appearance of (ti,sj)
 				if((M->h.e[i-1]==t0 || M->h.e[i-1]==t1 || M->h.e[i-1]==t2)&&(M->h.e[i]==s0 || M->h.e[i]==s1 || M->h.e[i]==s2)){
+					ok=false;
 					if(is_short(M->h.e[i])+3==is_short(M->h.e[i-1])){ // (t0,s0), (t1,s1) or (s2,s2)
 						for(int j=i+1;j<=n-1;j++) M->Elementary_transformation(j,-1);
 						for(int j=i  ;j<=n-2;j++) M->Elementary_transformation(j,-1);
 						return n-2;
 					}
-					if((is_short(M->h.e[i])-3+2)%3==(is_short(M->h.e[i-1])-6)%3){ // (t_{k+1},s_{k-1}) -> (s_k, t_{k+1})
+					else if((is_short(M->h.e[i])-3+2)%3==(is_short(M->h.e[i-1])-6)%3) // (t_{k+1},s_{k-1}) -> (s_k, t_{k+1})
 						M->Elementary_transformation(i,-1);
-						ok=false; break;
-					}
-					if((is_short(M->h.e[i])-3+1)%3==(is_short(M->h.e[i-1])-6)%3){ // (t_{k+1},s_{k}) -> (s_k, t_{k-1})
+					else if((is_short(M->h.e[i])-3+1)%3==(is_short(M->h.e[i-1])-6)%3) // (t_{k+1},s_{k}) -> (s_k, t_{k-1})
 						M->Elementary_transformation(i,1);
-						ok=false; break;
-					}
 				}
 			}
-			if(ok){
-				cout<<"| ---Rearrange (h1,...,hn) of short elements at most 1 of which is equal to a/a^2/b---\n";
-				cout<<"| h="<<M->h<<"\n";
-				// s_i,...,t_i
-				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++){
-					if((M->h.e[i-1]==s0 && M->h.e[j-1]==t0)||
-					   (M->h.e[i-1]==s1 && M->h.e[j-1]==t1)||
-					   (M->h.e[i-1]==s2 && M->h.e[j-1]==t2)){
-						for(int k=j;k<=n-1;k++) M->Elementary_transformation(k,-1);
-						for(int k=i;k<=n-2;k++) M->Elementary_transformation(k,-1);
-						return n-2;
-					}
-				}
-				// s_i,...,t_{i+1},...,t_{i+2}
-				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
-					if((M->h.e[i-1]==s0 && M->h.e[j-1]==t1 && M->h.e[k-1]==t2)||
-					   (M->h.e[i-1]==s1 && M->h.e[j-1]==t2 && M->h.e[k-1]==t0)||
-					   (M->h.e[i-1]==s2 && M->h.e[j-1]==t0 && M->h.e[k-1]==t1)){
-						for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
-						for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
-						for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
-						M->Elementary_transformation(n-1,1); // (s_i,t_{i+2},t_i)
-						M->Elementary_transformation(n-2,-1); // (*,s_i,t_i)
-						return n-2;
-					}
-				}
-				// s_{i+2},...,s_{i+1},...,t_{i}
-				for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
-					if((M->h.e[i-1]==s2 && M->h.e[j-1]==s1 && M->h.e[k-1]==t0)||
-					   (M->h.e[i-1]==s0 && M->h.e[j-1]==s2 && M->h.e[k-1]==t1)||
-					   (M->h.e[i-1]==s1 && M->h.e[j-1]==s0 && M->h.e[k-1]==t2)){
-						for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
-						for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
-						for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
-						M->Elementary_transformation(n-2,1); // (s_{i+1},s_i,t_i)
-						return n-2;
-					}
-				}
+			if(ok) break;
+		}
 
-				set<int> As,At; As.clear(); At.clear();
-				for(int i=1;i<=n;i++){
-					if     (M->h.e[i-1]==s0 || M->h.e[i-1]==s1 || M->h.e[i-1]==s2) As.insert(is_short(M->h.e[i-1]));
-					else if(M->h.e[i-1]==t0 || M->h.e[i-1]==t1 || M->h.e[i-1]==t2) At.insert(is_short(M->h.e[i-1]));
-				}
-				myassert(As.size()==0 || At.size()==0,"As.size()==0 || At.size()==0");
-				return n;
+		cout<<"| ---Rearrange (h1,...,hn) of short elements at most 1 of which is equal to a/a^2/b---\n";
+		cout<<"| h="<<M->h<<"\n";
+		// s_i,...,t_i
+		for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++){
+			if((M->h.e[i-1]==s0 && M->h.e[j-1]==t0)||
+			   (M->h.e[i-1]==s1 && M->h.e[j-1]==t1)||
+			   (M->h.e[i-1]==s2 && M->h.e[j-1]==t2)){
+				for(int k=j;k<=n-1;k++) M->Elementary_transformation(k,-1);
+				for(int k=i;k<=n-2;k++) M->Elementary_transformation(k,-1);
+				return n-2;
 			}
 		}
+		// s_i,...,t_{i+1},...,t_{i+2}
+		for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
+			if((M->h.e[i-1]==s0 && M->h.e[j-1]==t1 && M->h.e[k-1]==t2)||
+			   (M->h.e[i-1]==s1 && M->h.e[j-1]==t2 && M->h.e[k-1]==t0)||
+			   (M->h.e[i-1]==s2 && M->h.e[j-1]==t0 && M->h.e[k-1]==t1)){
+				for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
+				for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
+				for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
+				M->Elementary_transformation(n-1,1); // (s_i,t_{i+2},t_i)
+				M->Elementary_transformation(n-2,-1); // (*,s_i,t_i)
+				return n-2;
+			}
+		}
+		// s_{i+2},...,s_{i+1},...,t_{i}
+		for(int i=1;i<=n;i++) for(int j=i+1;j<=n;j++) for(int k=j+1;k<=n;k++){
+			if((M->h.e[i-1]==s2 && M->h.e[j-1]==s1 && M->h.e[k-1]==t0)||
+			   (M->h.e[i-1]==s0 && M->h.e[j-1]==s2 && M->h.e[k-1]==t1)||
+			   (M->h.e[i-1]==s1 && M->h.e[j-1]==s0 && M->h.e[k-1]==t2)){
+				for(int l=k;l<=n-1;l++) M->Elementary_transformation(l,-1);
+				for(int l=j;l<=n-2;l++) M->Elementary_transformation(l,-1);
+				for(int l=i;l<=n-3;l++) M->Elementary_transformation(l,-1);
+				M->Elementary_transformation(n-2,1); // (s_{i+1},s_i,t_i)
+				return n-2;
+			}
+		}
+
+		set<int> As,At; As.clear(); At.clear();
+		for(int i=1;i<=n;i++){
+			if     (M->h.e[i-1]==s0 || M->h.e[i-1]==s1 || M->h.e[i-1]==s2) As.insert(is_short(M->h.e[i-1]));
+			else if(M->h.e[i-1]==t0 || M->h.e[i-1]==t1 || M->h.e[i-1]==t2) At.insert(is_short(M->h.e[i-1]));
+		}
+		myassert(As.size()==0 || At.size()==0,"As.size()==0 || At.size()==0");
+
+		return n;
 	}
 }
 
@@ -614,8 +612,7 @@ void substitution_s202_to_s020(Tuple<Ga3b2>* M,int i){ M->Elementary_transformat
 
 namespace Moishezon{
 
-	/* normalize_s is an extension of the procedure introduced by Moishezon
-
+	/* 
 	   Given a tuple (g1,...,gn) of {a,b,s0,s1,s2} that has at most 1 component being a or b,
 	   it is transformed into (h1,...,hn) s.t. either
 	   (1) (h1,...,hn) = (s0,s1,s0,s1,s0,s1)^m, or
@@ -623,8 +620,9 @@ namespace Moishezon{
 	   (3) h starts with (b,s2) or (b,s0,...,s0,s2,s0), or
 	       (the cyclic_permutation of) h ends with (s0,b) or (s2,s0,s2,...,s2,b).
 	*/
-	void normalize_s(CR<Ga3b2>* M,bool details){ // by Moishezon
-		cout<<"+====normalize \"a tuple of {s0,s1,s2}\" (in fact, a tuple of {a,b,s0,s1,s2}) by Moishezon===\n";
+
+	Tuple<Ga3b2> Moishezon(CR<Ga3b2>* M,bool details){
+		cout<<"+====normalize \"a tuple in {a,b,s0,s1,s2}\" by Moishezon===\n";
 		cout<<"| g="<<M->h<<"\n";
 
 		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(M->h,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
@@ -733,6 +731,13 @@ namespace Moishezon{
 		cout<<"|----conclusion---\n";
 		cout<<"| g="<<M->h<<"\n";
 		cout<<"| h="<<g<<"\n";
+		cout<<"+=======\n";
+		return g;
+	}
+
+	void normalize_s(CR<Ga3b2>* M,bool details){
+		cout<<"---normalize_s "<<M->h<<"---\n";
+		Tuple<Ga3b2> g=Moishezon(M,details);
 		
 		// --- (h1,h2) = (a,s0) or (hn,h1) = (s2,a) or (hn,h1,h2) = (s1,a,s1), or
 		// --- h starts with (b,s2) or (b,s0,...,s0,s2,s0), or
@@ -750,7 +755,7 @@ namespace Moishezon{
 					cyclic_permutation_inv(M, g.len()); // (h1,h2,h3) = (s1,a,s1)
 					M->Elementary_transformation(2,-1); // (h1,h2,h3) = (s1,s0,a)
 					M->Contraction(1,2); // ---> (a,a)
-					M->Contraction(1,2); // ---> (a)
+					M->Contraction(1,2); // ---> (a^2)
 				}else
 					myassert(true,"when h1=a, there is no more possibility");
 			}else if(g.e[0]==b){
@@ -788,14 +793,18 @@ namespace Moishezon{
 				}
 			}
 
-			cout<<"|----contraction---\n";
+			cout<<"+----after contraction---\n";
 			cout<<"| g="<<M->h<<"\n";
 			cout<<"| G="<<M->H<<"\n";
+			cout<<"+-------\n";
 		}
-		cout<<"+=======\n";
+		cout<<"->"<<M->h<<"\n";
+		cout<<"---------\n";
 	}
 
 	void normalize_t(CR<Ga3b2>* M,bool details){
+		cout<<"---normalize_t "<<M->h<<"---\n";
+
 		vector<Ga3b2> g; g.clear();
 		for(Ga3b2 x:M->h.e) g.push_back(x.inv());
 		reverse(g.begin(),g.end());
@@ -806,8 +815,6 @@ namespace Moishezon{
 		// R_1^{-1}:(h^{-1},g^{-1})  ---> (h^{-1}g^{-1}h,h^{-1})
 		// R_i ~~~> R_{n-i}^{-1} and R_i^{-1} ~~~> R_{n-i}
 		
-		cout<<"+====normalize \"a tuple of {t0,t1,t2}\" (in fact, a tuple of {a^2,b,t0,t1,t2}) by Moishezon===\n";
-		cout<<"| g="<<M->h<<"\n";
 		for(auto it:M2.F){
 			if(it[0]==1){
 				int n=M->h.len();
@@ -819,8 +826,8 @@ namespace Moishezon{
 
 		}
 		cyclic_permutation(M); // (ab,ba,ab,ba,...) -> (ba,ab,ba,ab,...)
-		cout<<"| ->"<<M->h<<"\n";
-		cout<<"+=======\n";
+		cout<<"->"<<M->h<<"\n";
+		cout<<"---------\n";
 	}
 }
 

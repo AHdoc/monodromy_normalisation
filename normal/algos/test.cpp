@@ -82,25 +82,25 @@ int test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool
 	while(str2.size()+1<str1.size()) str2=str2+" "; str2=str2+"|";
 	cout<<str1<<"\n"<<str2<<"\n"<<str1<<"\n";
 
-	cout<<"    - Step 1: generate a random tuple g=(g1,...,gn) of length n=pa+qa+nb+p+q="<<n<<" s.t.\n";
+	cout<<"    - Step 0: generate a random tuple g=(g1,...,gn) of length n=pa+qa+nb+p+q="<<n<<" s.t.\n";
 	cout<<"        - pa of them are conjugates of a;\n";
 	cout<<"        - qa of them are conjugates of a^2;\n";
 	cout<<"        - nb of them are conjugates of b;\n";
 	cout<<"        - p of them are conjugates of aba;\n";
 	cout<<"        - q of them are conjugates of a^2ba^2.\n";
-	cout<<"    - Step 2: transform (g1,...,gn) into (h1,...,hm) * several pairs (x,x^{-1}) and triples (l,l,l) with l^3=1\n";
+	cout<<"    - Step 1: transform (g1,...,gn) into (h1,...,hm) * several pairs (x,x^{-1}) and triples (l,l,l) with l^3=1\n";
 	cout<<"        - where (h1,...,hm) is a tuple of short elements--\n";
-	cout<<"    - Step 3: transform/contract (h1,...,hm) into (k1,...,kl)\n";
+	cout<<"    - Step 2: transform/contract (h1,...,hm) into (k1,...,kl)\n";
 	cout<<"        - where (k1,...,kl) is an inverse-free tuple of short elements containing <=1 component equal to a/a^2/b\n";
-	cout<<"    - Step 4: contract/normalize (k1,...,kl)\n";
+	cout<<"    - Step 3: contract/normalize (k1,...,kl)\n";
 	cout<<"        - into (s0,s2,s0,s2,s0,s2)^? * (t0,t2,t0,t2,t0,t2)^? * (s_i,t_i)^?\n";
-	cout<<"    - Step 5: write the resulting tuple as a desired concatenation\n";
-	cout<<"        - Step 5.1: restore the resulting tuple\n";
-	cout<<"        - Step 5.2: handle the exceptional part, which is a tuple of finite length\n";
+	cout<<"    - Step 4: write the resulting tuple as a desired concatenation\n";
+	cout<<"        - Step 4.1: restore the resulting tuple\n";
+	cout<<"        - Step 4.2: handle the exceptional part, which is a tuple of finite length\n";
 	cout<<"\n";
 
 	cout<<"+--------+\n";
-	cout<<"| Step 1 |\n";
+	cout<<"| Step 0 |\n";
 	cout<<"+--------+\n";
 	
 	Tuple<Ga3b2> g0(get_normal_form(pa,qa,nb,p,q).second.e),g,h,k,g_final;
@@ -115,25 +115,25 @@ int test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool
 	cout<<"g="<<g<<"\n";
 
 	cout<<"+--------+\n";
-	cout<<"| Step 2 |\n";
+	cout<<"| Step 1 |\n";
 	cout<<"+--------+\n";
 	auto ret2=shorten_induction(g,details,"g");
 	h=ret2.first; F.insert(F.end(),ret2.second.begin(),ret2.second.end());
 
 	cout<<"+--------+\n";
-	cout<<"| Step 3 |\n";
+	cout<<"| Step 2 |\n";
 	cout<<"+--------+\n";
 	auto ret3=transform_into_inverse_free(h,details,"h");
 	k=ret3.first; F.insert(F.end(),ret3.second.begin(),ret3.second.end());
 	
 	cout<<"+--------+\n";
-	cout<<"| Step 4 |\n";
+	cout<<"| Step 3 |\n";
 	cout<<"+--------+\n";
 	auto ret4=normalize_inverse_free_tuple(k,details,"k");
 	F.insert(F.end(),ret4.begin(),ret4.end());
 
 	cout<<"+--------+\n";
-	cout<<"| Step 5 |\n";
+	cout<<"| Step 4 |\n";
 	cout<<"+--------+\n";
 	CR<Ga3b2> M; M.init(g); M.Apply(F); careful_restorations(&M);
 	auto ret5=sort_concatenation(M.h,details);
