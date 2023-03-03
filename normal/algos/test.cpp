@@ -175,3 +175,12 @@ void multi_test_normalize_short(bool details){
 
 	cout<<"max_length_exceptional_part = "<<max_length_exceptional_part<<"\n";
 }
+
+/******************************/
+
+void test_normalize_almost_short(int n,bool details){
+	Tuple<Ga3b2> g({Ga3b2({"b"}), Ga3b2({"b","a","b"}), Ga3b2({"b", "a^2"})});
+	cout<<"g="<<g<<"\n";
+
+	auto ret2=almost_shorten_induction(g,details,"g");
+}

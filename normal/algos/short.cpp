@@ -99,7 +99,7 @@ bool Operation2(CR<Ga3b2>* M){
 	return false;
 }
 
-/*--Elementary transformation avoiding that a short becomes long--------------*/
+/*--Elementary transformation to strictly-decrease S_complexity--------------*/
 bool Operation3(CR<Ga3b2>* M,int il,int ir){ // restrict that 1<=il<=i<=ir<=n-1
 	for(int i=il;i<=ir;i++) for(int epsilon=-1;epsilon<=1;epsilon+=2){
 		Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i,epsilon);
@@ -265,10 +265,10 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 	M.init(g_input);
 	/***********/
 	for(;;){
-		if(Operation1(&M))              continue;
-		if(Operation2(&M))              continue;
+		if(Operation1(&M))               continue;
+		if(Operation2(&M))               continue;
 		if(Operation3(&M,1,M.h.len()-1)) continue;
-		if(Operation4(&M))              continue;
+		if(Operation4(&M))               continue;
 		break;
 	}
 	/***********/

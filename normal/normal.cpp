@@ -1,3 +1,5 @@
+// g++ normal.cpp -O2 -o normal -I includes -I algos
+
 #include<iostream>
 #include<cstdio>
 #include<cstring>
@@ -20,6 +22,7 @@ using namespace std;
 
 #include"normal_form.cpp"
 #include"short.cpp"
+#include"almost_short.cpp"
 #include"test.cpp"
 
 
@@ -28,10 +31,6 @@ int main(){
 	//test_tuple();
 	//test_CR();
 
-	multi_test_normalize_short(false);
-
-	//auto ret=search(Tuple<Ga3b2>({b,t0,t2,t0,a2,a2,t1,t2,a,a,a}),Tuple<Ga3b2>({a,a2}));
-	//cout<<"ret.first="<<ret.first<<"\n";
+	//multi_test_normalize_short(false);
+	test_normalize_almost_short(10,true);
 }
-
-// a^2b ba^2 a^2ba^2 a^2b ba^2 ba^2 a^2b ba^2

@@ -15,4 +15,26 @@ void __myassert(const char* expr_str, bool expr, const char* file, int line, con
 	}
 }
 
+template<typename T>
+void pop_front(std::vector<T>& vec)
+{
+    myassert(!vec.empty(),"!vec.empty()");
+    vec.erase(vec.begin());
+}
+
+template<typename T>
+void pop_back(std::vector<T>& vec)
+{
+    myassert(!vec.empty(),"!vec.empty()");
+    vec.pop_back();
+}
+
+template<typename T>
+void pop_front_back(std::vector<T>& vec)
+{
+    myassert(!vec.empty(),"!vec.empty()");
+    vec.erase(vec.begin());
+    vec.pop_back();
+}
+
 #endif
