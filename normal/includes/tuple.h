@@ -37,7 +37,7 @@ struct Tuple{
 		}
 		s+=")";
 		if(s.size()<=130) return s;
-		else              return string(s,0,130)+"...";
+		else              return string(s,0,130)+"... of length "+to_string(s.size());
 	}
 
 	void Elementary_transformation(int i,int epsilon){
@@ -79,4 +79,33 @@ Tuple<Ga3b2> exceptional_tuples[18]={
 	Tuple<Ga3b2>({a2,a2,b,s2}), Tuple<Ga3b2>({a,a,b,t0}), Tuple<Ga3b2>({a2,a2,t2,t0,b,t0,t2,t0}), Tuple<Ga3b2>({a,a,s0,s2,b,s0,s2,s0})
 };
 
+/*************************************************************/
+
+bool each_component_is_short(Tuple<Ga3b2> g){
+	for(Ga3b2 x:g.e)
+		if(is_short(x)>=0);
+		else return false;
+	return true;
+}
+
+int S_complexity(Tuple<Ga3b2> g){
+	int ret=0;
+	for(int i=0;i<g.len();i++) ret+=S_complexity(g.e[i]);
+	return ret;
+}
+
+/*************************************************************/
+
+bool each_component_is_almost_short(Tuple<Ga3b2> g){
+	for(Ga3b2 x:g.e)
+		if(is_almost_short(x)>=0);
+		else return false;
+	return true;
+}
+
+int S2_complexity(Tuple<Ga3b2> g){
+	int ret=0;
+	for(int i=0;i<g.len();i++) ret+=S2_complexity(g.e[i]);
+	return ret;
+}
 #endif

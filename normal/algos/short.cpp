@@ -1,72 +1,3 @@
-bool short_table[9][9]={
-	{1, 1, 0, 1, 0, 0, 1, 1, 1},
-	{1, 1, 0, 1, 1, 1, 0, 0, 1},
-	{0, 0, 1, 0, 0, 1, 1, 0, 0},
-	{0, 1, 1, 0, 0, 1, 1, 0, 0},
-	{0, 1, 0, 1, 0, 0, 0, 1, 0},
-	{1, 1, 0, 0, 1, 0, 0, 0, 1},
-	{1, 1, 0, 1, 0, 0, 0, 1, 0},
-	{1, 0, 0, 0, 1, 0, 0, 0, 1},
-	{1, 0, 1, 0, 0, 1, 1, 0, 0}
-};
-
-int is_short(Ga3b2 g){ // return -1 if not
-	for(int i=0;i<9;i++)
-		if(short_elems[i]==g)
-			return i;
-	return -1;
-}
-
-bool each_component_is_short(Tuple<Ga3b2> g){
-	for(Ga3b2 x:g.e)
-		if(is_short(x)>=0);
-		else return false;
-	return true;
-}
-
-int S_complexity(Ga3b2 g){
-	if(is_short(g)!=-1 || g.len()==0) return 0;
-	myassert(g.len()%2==1,"len() of a long element in Ga3b2 is odd");
-	if(g.e[g.len()/2]=="a" || g.e[g.len()/2]=="a^2") return g.len()/2;
-	else{
-		if(g.len()>=3 && g.e[g.len()/2-1]==g.e[g.len()/2+1]) return g.len()/2-1;
-		else                                                 return g.len()/2;
-	}
-}
-
-int S_complexity(Tuple<Ga3b2> g){
-	int ret=0;
-	for(int i=0;i<g.len();i++) ret+=S_complexity(g.e[i]);
-	return ret;
-}
-
-pair<Ga3b2,Ga3b2> get_expression(Ga3b2 g){
-	if(is_short(g)!=-1 || g.len()==0)
-		return make_pair(g,Ga3b2());
-	if(g.e[g.len()/2]=="a" || g.e[g.len()/2]=="a^2")
-		return make_pair(
-			Ga3b2({g.e[g.len()/2]}),
-			Ga3b2(vector<string>(g.e.begin(),g.e.begin()+g.len()/2)).inv()
-		);
-	else{
-		if(g.len()>=3 && g.e[g.len()/2-1]==g.e[g.len()/2+1])
-			return make_pair(
-				Ga3b2({g.e[g.len()/2-1],g.e[g.len()/2],g.e[g.len()/2+1]}),
-				Ga3b2(vector<string>(g.e.begin(),g.e.begin()+g.len()/2-1)).inv()
-			);
-		else
-			return make_pair(
-				Ga3b2({g.e[g.len()/2]}),
-				Ga3b2(vector<string>(g.e.begin(),g.e.begin()+g.len()/2)).inv()
-			);
-	}
-}
-
-Ga3b2 get_tau_in_expression(Ga3b2 g){return get_expression(g).first;}
-Ga3b2 get_Q_in_expression(Ga3b2 g){return get_expression(g).second;}
-
-/*****/
-
 /*--Operation 1--------------*/
 bool Operation1(CR<Ga3b2>* M){
 	int n=M->h.len();
@@ -89,11 +20,10 @@ bool Operation1(CR<Ga3b2>* M){
 bool Operation2(CR<Ga3b2>* M){
 	int n=M->h.len();
 	for(int i=1;i<n;i++){
-		if(M->h.e[i-1].len()==0 && M->h.e[i].len()>=1){
-			for(int j=i;j<n;j++){
-				M->Elementary_transformation(j,-1);
-				return true;
-			}
+		if(M->h.e[i-1].len()>=1 && M->h.e[i].len()==0){
+			for(int j=i;j>=1;j--)
+				M->Elementary_transformation(j,1);
+			return true;
 		}
 	}
 	return false;
@@ -265,12 +195,18 @@ pair<Tuple<Ga3b2>,list<vector<int>>> shorten_induction(Tuple<Ga3b2> g_input,bool
 	M.init(g_input);
 	/***********/
 	for(;;){
+		if(details){
+			cout<<"| +-------\n";
+			cout<<"| | M.h="<<M.h<<"\n";
+			cout<<"| | M.H="<<M.H<<"\n";
+		}
 		if(Operation1(&M))               continue;
 		if(Operation2(&M))               continue;
 		if(Operation3(&M,1,M.h.len()-1)) continue;
 		if(Operation4(&M))               continue;
 		break;
 	}
+	for(int i=1;i<=M.h.len();i++) myassert(M.h.e[i-1].len()==0,"each component of the tuple after induction is 1");
 	/***********/
 	careful_restorations(&M,false);
 

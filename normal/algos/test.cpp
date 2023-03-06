@@ -76,12 +76,7 @@ void test_CR(){
 	}
 }
 
-int test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool details){
-	string str1="+---------------------+";
-	string str2="|  Test Case "+to_string(testnum);
-	while(str2.size()+1<str1.size()) str2=str2+" "; str2=str2+"|";
-	cout<<str1<<"\n"<<str2<<"\n"<<str1<<"\n";
-
+int test_normalize_short(int n,bool details){
 	cout<<"    - Step 0: generate a random tuple g=(g1,...,gn) of length n=pa+qa+nb+p+q="<<n<<" s.t.\n";
 	cout<<"        - pa of them are conjugates of a;\n";
 	cout<<"        - qa of them are conjugates of a^2;\n";
@@ -103,46 +98,40 @@ int test_normalize_short(int testnum,int n,int pa,int qa,int nb,int p,int q,bool
 	cout<<"| Step 0 |\n";
 	cout<<"+--------+\n";
 	
-	Tuple<Ga3b2> g0(get_normal_form(pa,qa,nb,p,q).second.e),g,h,k,g_final;
-	g=g0;
+	auto ret0=random_tuple_of_short_elements(n,true);
+	Tuple<Ga3b2> g0=ret0.first,g=ret0.second,h,k,g_final;
 	list<vector<int>> F; F.clear();
-	for(int j=1;j<=100;j++){
-		int i=rand()%(n-1)+1;
-		int epsilon=(rand()%2)*2-1;
-		g.Elementary_transformation(i,epsilon);
-	}
-	cout<<"n, pa, qa, nb, p, q = "<<n<<", "<<pa<<", "<<qa<<", "<<nb<<", "<<p<<", "<<q<<"\n";
 	cout<<"g="<<g<<"\n";
 
 	cout<<"+--------+\n";
 	cout<<"| Step 1 |\n";
 	cout<<"+--------+\n";
-	auto ret2=shorten_induction(g,details,"g");
-	h=ret2.first; F.insert(F.end(),ret2.second.begin(),ret2.second.end());
+	auto ret1=shorten_induction(g,details,"g");
+	h=ret1.first; F.insert(F.end(),ret1.second.begin(),ret1.second.end());
 
 	cout<<"+--------+\n";
 	cout<<"| Step 2 |\n";
 	cout<<"+--------+\n";
-	auto ret3=transform_into_inverse_free(h,details,"h");
-	k=ret3.first; F.insert(F.end(),ret3.second.begin(),ret3.second.end());
+	auto ret2=transform_into_inverse_free(h,details,"h");
+	k=ret2.first; F.insert(F.end(),ret2.second.begin(),ret2.second.end());
 	
 	cout<<"+--------+\n";
 	cout<<"| Step 3 |\n";
 	cout<<"+--------+\n";
-	auto ret4=normalize_inverse_free_tuple(k,details,"k");
-	F.insert(F.end(),ret4.begin(),ret4.end());
+	auto ret3=normalize_inverse_free_tuple(k,details,"k");
+	F.insert(F.end(),ret3.begin(),ret3.end());
 
 	cout<<"+--------+\n";
 	cout<<"| Step 4 |\n";
 	cout<<"+--------+\n";
 	CR<Ga3b2> M; M.init(g); M.Apply(F); careful_restorations(&M,true);
-	auto ret5=sort_concatenation(M.h,details);
-	g_final=ret5.first;
+	auto ret4=sort_concatenation(M.h,details);
+	g_final=ret4.first;
 
 	myassert(g0==g_final,"g0 == g_final");
 
 	cout<<"\n";
-	return ret5.second;
+	return ret4.second;
 }
 
 void multi_test_normalize_short(bool details){
@@ -155,21 +144,13 @@ void multi_test_normalize_short(bool details){
 	int max_length_exceptional_part=0;
 
 	for(int t=1;t<=test;t++){
+		string str1="+---------------------+";
+		string str2="|  Test Case "+to_string(t);
+		while(str2.size()+1<str1.size()) str2=str2+" "; str2=str2+"|";
+		cout<<str1<<"\n"<<str2<<"\n"<<str1<<"\n";
+
 		n=rand()%(nr-nl+1)+nl;
-		int pa,qa,nb,p,q;
-		for(;;){
-			pa=0,qa=0,nb=0,p=0,q=0;
-			for(int i=1;i<=n;i++){
-				int o=rand()%10;
-				if(o==0) ++pa;
-				if(o==1) ++qa;
-				if(o==2) ++nb;
-				if(o==3) ++p;
-				if(o>=4) ++q; // I prefer more components conjugate to ba=t0
-			}
-			if(get_normal_form(pa,qa,nb,p,q).first) break;
-		}
-		int length_exceptional_part=test_normalize_short(t,n,pa,qa,nb,p,q,details);
+		int length_exceptional_part=test_normalize_short(n,details);
 		if(length_exceptional_part>max_length_exceptional_part) max_length_exceptional_part=length_exceptional_part;
 	}
 
@@ -179,8 +160,25 @@ void multi_test_normalize_short(bool details){
 /******************************/
 
 void test_normalize_almost_short(int n,bool details){
-	Tuple<Ga3b2> g({Ga3b2({"b"}), Ga3b2({"b","a","b"}), Ga3b2({"b", "a^2"})});
-	cout<<"g="<<g<<"\n";
-
+	Tuple<Ga3b2> g=random_tuple_of_almost_short_elements(n);
 	auto ret2=almost_shorten_induction(g,details,"g");
+}
+
+void multi_test_normalize_almost_short(bool details){
+	cout<<"This is a quick multi-test for almost_short.cpp\n";
+	cout<<"Input   nl   nr   s.t.   (g1,...,gn) with nl<=n<=nr   is an n-tuple in PSL(2,Z)=Ga3b2 of almost short elements satisfying g1***gn=1.\n";
+	int n,nl,nr; cin>>nl>>nr;
+
+	cout<<"Input t for the number of test cases.\n";
+	int test; cin>>test;
+
+	for(int t=1;t<=test;t++){
+		string str1="+---------------------+";
+		string str2="|  Test Case "+to_string(t);
+		while(str2.size()+1<str1.size()) str2=str2+" "; str2=str2+"|";
+		cout<<str1<<"\n"<<str2<<"\n"<<str1<<"\n";
+
+		n=rand()%(nr-nl+1)+nl;
+		test_normalize_almost_short(n,details);
+	}
 }

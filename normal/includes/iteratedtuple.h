@@ -66,7 +66,7 @@ struct iteratedTuple{
 			}
 			s+=")";
 			if(s.size()<=130) return s;
-			else              return string(s,0,130)+"...";
+			else              return string(s,0,130)+"... of length "+to_string(s.size());
 		}
 	}
 

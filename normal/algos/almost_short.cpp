@@ -1,79 +1,21 @@
-bool almost_short_table[19][19]={
-{1,1,1,1,1,1,1,1,1,0,0,1,1,1,0,0,0,0,0},
-{1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,1},
-{1,1,1,1,0,1,1,0,1,1,1,0,0,0,0,1,1,0,0},
-{1,1,1,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0},
-{1,1,0,1,0,0,0,1,1,0,0,1,0,1,0,0,0,1,0},
-{1,1,1,1,1,0,0,1,1,0,0,0,1,0,1,0,0,0,1},
-{1,1,1,1,1,0,0,1,1,0,0,1,0,1,0,0,0,1,0},
-{1,1,0,1,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1},
-{1,1,1,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0},
-{0,0,1,0,0,1,1,0,0,1,1,0,0,0,0,0,1,0,0},
-{0,0,1,0,0,1,1,0,0,1,1,0,0,0,0,1,0,0,0},
-{1,1,0,1,0,0,0,1,0,0,0,1,1,1,0,0,0,1,0},
-{1,1,0,0,1,0,0,0,1,0,0,1,1,0,1,0,0,0,1},
-{0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,1,1,0,0},
-{0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0},
-{1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1},
-{0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0},
-{0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1},
-{0,0,1,0,0,1,1,0,0,1,0,0,0,0,0,1,1,0,0}
-};
-
-int is_almost_short(Ga3b2 g){ // return -1 if not
-	for(int i=0;i<19;i++)
-		if(almost_short_elems[i]==g)
-			return i;
-	return -1;
-}
-
-bool each_component_is_almost_short(Tuple<Ga3b2> g){
-	for(Ga3b2 x:g.e)
-		if(is_almost_short(x)>=0);
-		else return false;
-	return true;
-}
-
-int S2_complexity(Ga3b2 g){
-	if(g.len()==0) return 0;
-	int q=0;
-	for(;;){
-		if(is_almost_short(g)){
-			if(g==Ga3b2({"a","b","a","b","a"}) || g==Ga3b2({"a^2","b","a^2","b","a^2"})){
-				if(q>0) return 2*q;
-				else return 1;
-			}else return 2*q;
-		}
-		pop_front_back(g.e); ++q;
-	}
-}
-
-int S2_complexity(Tuple<Ga3b2> g){
-	int ret=0;
-	for(int i=0;i<g.len();i++) ret+=S2_complexity(g.e[i]);
-	return ret;
-}
-
 /*--Operation 1--------------*/
 bool OperationA(CR<Ga3b2>* M){
 	int n=M->h.len();
 	for(int i=1;i+1<=n;i++){
 		Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i];
-		for(;;){
-			int row=is_almost_short(g1), col=is_almost_short(g2);
-			if(row!=-1 && col!=-1 && almost_short_table[row][col]){
+
+		if(g1.len()==0 || g2.len()==0) continue;
+		
+		int row=is_almost_short(g1), col=is_almost_short(g2);
+		if(row!=-1 && col!=-1 && almost_short_table[row][col]){
+			M->Contraction(i,i+1);
+			return true;
+		}
+		if(row==-1 && col==-1){
+			Ga3b2 Q1=get_Q_in_expression_2(g1),Q2=get_Q_in_expression_2(g2);
+			if(Q1==Q2 && almost_short_table[is_almost_short(Q1*g1*Q1.inv())][is_almost_short(Q2*g2*Q2.inv())]){
 				M->Contraction(i,i+1);
 				return true;
-			}
-			int len1=g1.len(),len2=g2.len();
-			if(len1>=2 && len2>=2){
-				if(g1.e[0]=="b" && g1.e[len1-1]=="b" && g2.e[0]=="b" && g2.e[len2-1]=="b"){
-					pop_front_back(g1.e); pop_front_back(g2.e);
-				}else if(g1.e[0]=="a^2" && g1.e[len1-1]=="a" && g2.e[0]=="a^2" && g2.e[len2-1]=="a"){
-					pop_front_back(g1.e); pop_front_back(g2.e);
-				}else if(g1.e[0]=="a" && g1.e[len1-1]=="a^2" && g2.e[0]=="a" && g2.e[len2-1]=="a^2"){
-					pop_front_back(g1.e); pop_front_back(g2.e);
-				}else break;
 			}
 		}
 	}
@@ -85,20 +27,20 @@ bool OperationB(CR<Ga3b2>* M){
 	int n=M->h.len();
 	for(int i=1;i+2<=n;i++){
 		Ga3b2 g1=M->h.e[i-1],g2=M->h.e[i],g3=M->h.e[i+1];
-		for(;;){
-			if((g1==Ga3b2({"a^2","b","a","b"}) && g2==Ga3b2({"b","a","b"}) && g3==Ga3b2({"b","a","b","a^2"})) ||
-			   (g1==Ga3b2({"a","b","a^2","b"}) && g2==Ga3b2({"b","a^2","b"}) && g3==Ga3b2({"b","a^2","b","a"}))){
+		/*
+			Q' ba^2ba Q, Q' a Q, Q' aba^2b Q
+			Q' baba^2 Q, Q' a^2 Q, Q' a^2bab Q
+		*/
+
+		if(g2.len()%2==1 && (get_tau_in_expression_2(g2)==a || get_tau_in_expression_2(g2)==a2 ||
+			                 get_tau_in_expression_2(g2)==b*a*b || get_tau_in_expression_2(g2)==b*a2*b)){
+			Ga3b2 Q=Ga3b2(vector<string>(g2.e.begin(),g2.e.begin()+g2.len()/2)).inv();
+			g1=Q.inv()*g1*Q; g2=Ga3b2({g2.e[g2.len()/2]}); g3=Q.inv()*g3*Q;
+
+			if((g1==Ga3b2({"b","a^2","b","a"}) && g2==a && g3==Ga3b2({"a","b","a^2","b"})) ||
+			   (g1==Ga3b2({"b","a","b","a^2"}) && g2==a2 && g3==Ga3b2({"a^2","b","a","b"}))){
 				M->Contraction(i,i+2);
-			}
-			int len1=g1.len(),len2=g2.len(),len3=g3.len();
-			if(len1>=2 && len2>=2 && len3>=2){
-				if(g1.e[0]=="b" && g1.e[len1-1]=="b" && g2.e[0]=="b" && g2.e[len2-1]=="b" && g3.e[0]=="b" && g3.e[len3-1]=="b"){
-					pop_front_back(g1.e); pop_front_back(g2.e); pop_front_back(g3.e);
-				}else if(g1.e[0]=="a^2" && g1.e[len1-1]=="a" && g2.e[0]=="a^2" && g2.e[len2-1]=="a" && g3.e[0]=="a^2" && g3.e[len3-1]=="a"){
-					pop_front_back(g1.e); pop_front_back(g2.e); pop_front_back(g3.e);
-				}else if(g1.e[0]=="a" && g1.e[len1-1]=="a^2" && g2.e[0]=="a" && g2.e[len2-1]=="a^2" && g3.e[0]=="a" && g3.e[len3-1]=="a^2"){
-					pop_front_back(g1.e); pop_front_back(g2.e); pop_front_back(g3.e);
-				}else break;
+			   	return true;
 			}
 		}
 	}
@@ -109,11 +51,10 @@ bool OperationB(CR<Ga3b2>* M){
 bool OperationC(CR<Ga3b2>* M){
 	int n=M->h.len();
 	for(int i=1;i<n;i++){
-		if(M->h.e[i-1].len()==0 && M->h.e[i].len()>=1){
-			for(int j=i;j<n;j++){
-				M->Elementary_transformation(j,-1);
-				return true;
-			}
+		if(M->h.e[i-1].len()>=1 && M->h.e[i].len()==0){
+			for(int j=i;j>=1;j--)
+				M->Elementary_transformation(j,1);
+			return true;
 		}
 	}
 	return false;
@@ -186,10 +127,12 @@ pair<Tuple<Ga3b2>,list<vector<int>>> almost_shorten_induction(Tuple<Ga3b2> g_inp
 		if(OperationE(&M))               continue;
 		break;
 	}
+	for(int i=1;i<=M.h.len();i++) myassert(M.h.e[i-1].len()==0,"each component of the tuple after induction is 1");
 	/***********/
 	cout<<"| +----after the induction---\n";
 	cout<<"| | M.h="<<M.h<<"\n";
 	cout<<"| | M.H="<<M.H<<"\n";
+	cout<<"| +=======\n";
 
 	//careful_restorations(&M,false);
 
@@ -226,3 +169,16 @@ pair<Tuple<Ga3b2>,list<vector<int>>> almost_shorten_induction(Tuple<Ga3b2> g_inp
 }
 
 /***************************/
+
+
+/*
+
+a^2b  a^2b  a^2ba^2baba  ba^2ba^2ba^2b  baba^2  a^2bab  a^2ba^2babababa
+
+a^2b  a^2b  a^2ba^2baba  ba^2ba^2ba^2b  baba^2  a^2bab  a^2ba^2babababa
+
+ba^2ba^2ba^2b  baba^2
+
+baba^2     aba^2b ba^2ba^2ba^2b baba^2=ababa
+
+*/

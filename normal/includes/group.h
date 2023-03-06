@@ -176,4 +176,109 @@ Ga3b2 almost_short_elems[19]={
 	Ga3b2({"b","a^2","b","a"}), Ga3b2({"a^2","b","a^2","b","a^2"}), Ga3b2({"a","b","a^2","b"}),
 };
 
+/*************************************************************/
+/* short elements */
+
+bool short_table[9][9]={
+	{1, 1, 0, 1, 0, 0, 1, 1, 1},
+	{1, 1, 0, 1, 1, 1, 0, 0, 1},
+	{0, 0, 1, 0, 0, 1, 1, 0, 0},
+	{0, 1, 1, 0, 0, 1, 1, 0, 0},
+	{0, 1, 0, 1, 0, 0, 0, 1, 0},
+	{1, 1, 0, 0, 1, 0, 0, 0, 1},
+	{1, 1, 0, 1, 0, 0, 0, 1, 0},
+	{1, 0, 0, 0, 1, 0, 0, 0, 1},
+	{1, 0, 1, 0, 0, 1, 1, 0, 0}
+};
+
+int is_short(Ga3b2 g){ // return -1 if not
+	for(int i=0;i<9;i++)
+		if(short_elems[i]==g)
+			return i;
+	return -1;
+}
+
+pair<Ga3b2,Ga3b2> get_expression(Ga3b2 g){
+	if(is_short(g)!=-1 || g.len()==0)
+		return make_pair(g,Ga3b2());
+	if(g.len()>=3){
+		Ga3b2 tau=Ga3b2({g.e[g.len()/2]});
+		Ga3b2 q=Ga3b2(vector<string>(g.e.begin(),g.e.begin()+g.len()/2)).inv();
+		if(q.inv()*tau*q==g) return make_pair(tau, q);
+	}
+	if(g.len()>=5){
+		Ga3b2 tau=Ga3b2({g.e[g.len()/2-1],g.e[g.len()/2],g.e[g.len()/2+1]});
+		Ga3b2 q=Ga3b2(vector<string>(g.e.begin(),g.e.begin()+g.len()/2-1)).inv();
+		if(q.inv()*tau*q==g) return make_pair(tau, q);
+	}
+}
+
+Ga3b2 get_tau_in_expression(Ga3b2 g){return get_expression(g).first;}
+Ga3b2 get_Q_in_expression(Ga3b2 g){return get_expression(g).second;}
+
+int S_complexity(Ga3b2 g){
+	Ga3b2 tau=get_tau_in_expression(g);
+	Ga3b2 Q=get_Q_in_expression(g);
+	return Q.len();
+}
+
+/*************************************************************/
+/* almost short elements */
+
+bool almost_short_table[19][19]={
+{1,1,1,1,1,1,1,1,1,0,0,1,1,1,0,0,0,0,0},
+{1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,1},
+{1,1,1,1,0,1,1,0,1,1,1,0,0,0,0,1,1,0,0},
+{1,1,1,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0},
+{1,1,0,1,0,0,0,1,1,0,0,1,0,1,0,0,0,1,0},
+{1,1,1,1,1,0,0,1,1,0,0,0,1,0,1,0,0,0,1},
+{1,1,1,1,1,0,0,1,1,0,0,1,0,1,0,0,0,1,0},
+{1,1,0,1,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1},
+{1,1,1,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0},
+{0,0,1,0,0,1,1,0,0,1,1,0,0,0,0,0,1,0,0},
+{0,0,1,0,0,1,1,0,0,1,1,0,0,0,0,1,0,0,0},
+{1,1,0,1,0,0,0,1,0,0,0,1,1,1,0,0,0,1,0},
+{1,1,0,0,1,0,0,0,1,0,0,1,1,0,1,0,0,0,1},
+{0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,1,1,0,0},
+{0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0},
+{1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1},
+{0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0},
+{0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1},
+{0,0,1,0,0,1,1,0,0,1,0,0,0,0,0,1,1,0,0}
+};
+
+int is_almost_short(Ga3b2 g){ // return -1 if not
+	for(int i=0;i<19;i++)
+		if(almost_short_elems[i]==g)
+			return i;
+	return -1;
+}
+
+pair<Ga3b2,Ga3b2> get_expression_2(Ga3b2 g){
+	if(is_almost_short(g)!=-1 || g.len()==0)
+		return make_pair(g,Ga3b2());
+	if(g.len()>=5){
+		Ga3b2 tau=Ga3b2({g.e[g.len()/2-1],g.e[g.len()/2],g.e[g.len()/2+1]});
+		Ga3b2 q=Ga3b2(vector<string>(g.e.begin(),g.e.begin()+g.len()/2-1)).inv();
+		if(q.inv()*tau*q==g) return make_pair(tau, q);
+	}
+	if(g.len()>=7){
+		Ga3b2 tau=Ga3b2({g.e[g.len()/2-2],g.e[g.len()/2-1],g.e[g.len()/2],g.e[g.len()/2+1],g.e[g.len()/2+2]});
+		Ga3b2 q=Ga3b2(vector<string>(g.e.begin(),g.e.begin()+g.len()/2-2)).inv();
+		if(q.inv()*tau*q==g) return make_pair(tau, q);
+	}
+}
+
+Ga3b2 get_tau_in_expression_2(Ga3b2 g){return get_expression_2(g).first;}
+Ga3b2 get_Q_in_expression_2(Ga3b2 g){return get_expression_2(g).second;}
+
+int S2_complexity(Ga3b2 g){
+	Ga3b2 tau=get_tau_in_expression_2(g);
+	Ga3b2 Q=get_Q_in_expression_2(g);
+	if(tau.len()==5 && Q.len()==0) return 1;
+	else return Q.len()*2;
+}
+
+/*************************************************************/
+
 #endif
