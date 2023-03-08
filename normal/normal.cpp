@@ -27,10 +27,11 @@ using namespace std;
 
 
 int main(){
+	srand (time(NULL));
 	//test_Ga3b2();
 	//test_tuple();
 	//test_CR();
 
-	//multi_test_normalize_short(false);
-	multi_test_normalize_almost_short(false);
+	multi_test_normalize_short(false);
+	//multi_test_normalize_almost_short(false);
 }

@@ -76,7 +76,7 @@ void test_CR(){
 	}
 }
 
-int test_normalize_short(int n,bool details){
+Tuple<Ga3b2> test_normalize_short(int n,bool details){
 	cout<<"    - Step 0: generate a random tuple g=(g1,...,gn) of length n=pa+qa+nb+p+q="<<n<<" s.t.\n";
 	cout<<"        - pa of them are conjugates of a;\n";
 	cout<<"        - qa of them are conjugates of a^2;\n";
@@ -141,7 +141,7 @@ void multi_test_normalize_short(bool details){
 
 	cout<<"Input t for the number of test cases.\n";
 	int test; cin>>test;
-	int max_length_exceptional_part=0;
+	Tuple<Ga3b2> longest_exceptional_part(vector<Ga3b2>{});
 
 	for(int t=1;t<=test;t++){
 		string str1="+---------------------+";
@@ -150,18 +150,23 @@ void multi_test_normalize_short(bool details){
 		cout<<str1<<"\n"<<str2<<"\n"<<str1<<"\n";
 
 		n=rand()%(nr-nl+1)+nl;
-		int length_exceptional_part=test_normalize_short(n,details);
-		if(length_exceptional_part>max_length_exceptional_part) max_length_exceptional_part=length_exceptional_part;
+		Tuple<Ga3b2> g_excep=test_normalize_short(n,details);
+		if(g_excep.len()>longest_exceptional_part.len()) longest_exceptional_part=g_excep;
 	}
 
-	cout<<"max_length_exceptional_part = "<<max_length_exceptional_part<<"\n";
+	cout<<"longest_exceptional_part = "<<longest_exceptional_part<<"\n";
 }
 
 /******************************/
 
 void test_normalize_almost_short(int n,bool details){
 	Tuple<Ga3b2> g=random_tuple_of_almost_short_elements(n);
-	auto ret2=almost_shorten_induction(g,details,"g");
+	almost_shorten_induction(g,details,"g");
+
+	// almost_shorten_induction(Tuple<Ga3b2>(
+	// 	{a*b, a2*b, a2*b*a, b*a*b*a*b*a2*b*a*b*a2*b*a2*b, b*a2*b*a2*b*a2*b*a2*b*a*b,
+	// 	 a*b*a*b*a2, a*b*a*b*a, a2*b*a*b*a, a*b*a2*b*a2*b*a2*b*a2, a*b*a*b*a2*b*a*b*a*b*a2*b*a*b*a2*b*a2,
+	// 	 a2*b*a2*b*a2, b*a2*b*a, b*a*b*a2}),true,"g");
 }
 
 void multi_test_normalize_almost_short(bool details){

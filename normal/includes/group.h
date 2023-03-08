@@ -267,6 +267,7 @@ pair<Ga3b2,Ga3b2> get_expression_2(Ga3b2 g){
 		Ga3b2 q=Ga3b2(vector<string>(g.e.begin(),g.e.begin()+g.len()/2-2)).inv();
 		if(q.inv()*tau*q==g) return make_pair(tau, q);
 	}
+	myassert(false,"get_expression_2 can only handle conjugates of almost short elements");
 }
 
 Ga3b2 get_tau_in_expression_2(Ga3b2 g){return get_expression_2(g).first;}

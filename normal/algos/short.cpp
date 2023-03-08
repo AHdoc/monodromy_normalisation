@@ -30,6 +30,8 @@ bool Operation2(CR<Ga3b2>* M){
 }
 
 /*--Elementary transformation to strictly-decrease S_complexity--------------*/
+/*--(1) to make the sum of S_complexities smaller--*/
+/*--(2) to void making a short componnet long--*/
 bool Operation3(CR<Ga3b2>* M,int il,int ir){ // restrict that 1<=il<=i<=ir<=n-1
 	for(int i=il;i<=ir;i++) for(int epsilon=-1;epsilon<=1;epsilon+=2){
 		Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i,epsilon);
@@ -40,16 +42,16 @@ bool Operation3(CR<Ga3b2>* M,int il,int ir){ // restrict that 1<=il<=i<=ir<=n-1
 	}
 	/*To handle cases including (s1, a2ba) and (t1, aba2),
 	  we have to consider a sequence of elementary transformtaions of length 2.*/
-	for(int i1=il;i1<=ir;i1++) for(int epsilon1=-1;epsilon1<=1;epsilon1+=2)
-		for(int i2=il;i2<=ir;i2++) for(int epsilon2=-1;epsilon2<=1;epsilon2+=2){
-			Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i1,epsilon1);
-			Tuple<Ga3b2> h2=h1  ; h2.Elementary_transformation(i2,epsilon2);
-			if(S_complexity(M->h)==S_complexity(h1) && S_complexity(h1)>S_complexity(h2)){
-				M->Elementary_transformation(i1,epsilon1);
-				M->Elementary_transformation(i2,epsilon2);
-				return true;
-			}
+	for(int i1=il;i1<=ir;i1++) for(int epsilon1=-1;epsilon1<=1;epsilon1+=2) for(int epsilon2=-1;epsilon2<=1;epsilon2+=2){
+		int i2=i1;
+		Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i1,epsilon1);
+		Tuple<Ga3b2> h2=h1  ; h2.Elementary_transformation(i2,epsilon2);
+		if(S_complexity(M->h)==S_complexity(h1) && S_complexity(h1)>S_complexity(h2)){ //strictly-decreasing
+			M->Elementary_transformation(i1,epsilon1);
+			M->Elementary_transformation(i2,epsilon2);
+			return true;
 		}
+	}
 	return false;
 }
 
@@ -122,7 +124,7 @@ void careful_restorations(CR<Ga3b2>* M,bool details){
 	if(details) cout<<"h = "<<M->h<<"\n";
 	if(details) cout<<"H = "<<M->H<<"\n";
 	for(;;){
-		int k=M->Restoration();
+		int k=M->Restoration().first;
 		if(k==-1) break;
 		while(Operation3(M,k,k)) continue;
 		if(details) cout<<"--> "<<M->h<<"\n";
@@ -1094,7 +1096,7 @@ list<vector<int>> get_minimal_lexicographical_order(Tuple<Ga3b2> g){
 
 /***search end***/
 
-pair<Tuple<Ga3b2>,int> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
+pair<Tuple<Ga3b2>,Tuple<Ga3b2>> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 	CR<Ga3b2> MM; MM.init(g_input);
 	int n=g_input.len();
 
@@ -1113,7 +1115,7 @@ pair<Tuple<Ga3b2>,int> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 	cout<<"===exceptional part===\n";
 	cout<<"g      ="<<MM.h<<"\n";
 	cout<<"g_excep="<<h<<"\n";
-	int length_exceptional_part=m;
+	Tuple<Ga3b2> g_excep=h;
 
 	{
 		int cnt_a,cnt_a2,cnt_b,cnt_s,cnt_t; get_cnts(h,&cnt_a,&cnt_a2,&cnt_b,&cnt_s,&cnt_t);
@@ -1345,5 +1347,5 @@ pair<Tuple<Ga3b2>,int> sort_concatenation(Tuple<Ga3b2> g_input,bool details){
 		myassert(cnt_s==0 || cnt_t==0,"cnt_s==0 || cnt_t==0");
 	}
 
-	return make_pair(MM.h,length_exceptional_part);
+	return make_pair(MM.h,g_excep);
 }

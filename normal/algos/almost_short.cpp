@@ -35,7 +35,8 @@ bool OperationB(CR<Ga3b2>* M){
 		if(g2.len()%2==1 && (get_tau_in_expression_2(g2)==a || get_tau_in_expression_2(g2)==a2 ||
 			                 get_tau_in_expression_2(g2)==b*a*b || get_tau_in_expression_2(g2)==b*a2*b)){
 			Ga3b2 Q=Ga3b2(vector<string>(g2.e.begin(),g2.e.begin()+g2.len()/2)).inv();
-			g1=Q.inv()*g1*Q; g2=Ga3b2({g2.e[g2.len()/2]}); g3=Q.inv()*g3*Q;
+			myassert(Ga3b2({g2.e[g2.len()/2]})==Q*g2*Q.inv(),"g2=Q^{-1}aQ or Q^{-1}a^2Q");
+			g1=Q*g1*Q.inv(); g2=Q*g2*Q.inv(); g3=Q*g3*Q.inv();
 
 			if((g1==Ga3b2({"b","a^2","b","a"}) && g2==a && g3==Ga3b2({"a","b","a^2","b"})) ||
 			   (g1==Ga3b2({"b","a","b","a^2"}) && g2==a2 && g3==Ga3b2({"a^2","b","a","b"}))){
@@ -60,25 +61,46 @@ bool OperationC(CR<Ga3b2>* M){
 	return false;
 }
 
-/*--Elementary transformation strictly-decrease S2_complexity--------------*/
+/*--Elementary transformation decreases S2_complexity--------------*/
 bool OperationD(CR<Ga3b2>* M,int il,int ir){ // restrict that 1<=il<=i<=ir<=n-1
-	for(int i=il;i<=ir;i++) for(int epsilon=-1;epsilon<=1;epsilon+=2){
-		Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i,epsilon);
-		if(S2_complexity(h1)<S2_complexity(M->h)){
-			M->Elementary_transformation(i,epsilon);
-			return true;
+	for(int smallest_i=il;smallest_i<=ir;smallest_i++){
+		for(int i=smallest_i;i<=smallest_i+1 && i<=ir;i++) for(int epsilon=-1;epsilon<=1;epsilon+=2){
+			Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i,epsilon);
+			if(S2_complexity(M->h)>S2_complexity(h1)){
+				M->Elementary_transformation(i,epsilon);
+				return true;
+			}
 		}
 	}
-	for(int i1=il;i1<=ir;i1++) for(int epsilon1=-1;epsilon1<=1;epsilon1+=2)
-		for(int i2=il;i2<=ir;i2++) for(int epsilon2=-1;epsilon2<=1;epsilon2+=2){
+	for(int smallest_i=il;smallest_i<=ir;smallest_i++){
+		for(int i1=smallest_i;i1<=smallest_i+1 && i1<=ir;i1++) for(int epsilon1=-1;epsilon1<=1;epsilon1+=2)
+		for(int i2=smallest_i;i2<=smallest_i+1 && i2<=ir;i2++) for(int epsilon2=-1;epsilon2<=1;epsilon2+=2){
 			Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i1,epsilon1);
 			Tuple<Ga3b2> h2=h1  ; h2.Elementary_transformation(i2,epsilon2);
-			if(S2_complexity(M->h)==S2_complexity(h1) && S2_complexity(h1)>S2_complexity(h2)){
+			//if(S2_complexity(M->h)==S2_complexity(h1) && S2_complexity(h1)>S2_complexity(h2)){
+			if(S2_complexity(M->h)>S2_complexity(h2)){
 				M->Elementary_transformation(i1,epsilon1);
 				M->Elementary_transformation(i2,epsilon2);
 				return true;
 			}
 		}
+	}
+	for(int smallest_i=il;smallest_i<=ir;smallest_i++){
+		for(int i1=smallest_i;i1<=smallest_i+1 && i1<=ir;i1++) for(int epsilon1=-1;epsilon1<=1;epsilon1+=2)
+		for(int i2=smallest_i;i2<=smallest_i+1 && i2<=ir;i2++) for(int epsilon2=-1;epsilon2<=1;epsilon2+=2)
+		for(int i3=smallest_i;i3<=smallest_i+1 && i3<=ir;i3++) for(int epsilon3=-1;epsilon3<=1;epsilon3+=2){
+			Tuple<Ga3b2> h1=M->h; h1.Elementary_transformation(i1,epsilon1);
+			Tuple<Ga3b2> h2=h1  ; h2.Elementary_transformation(i2,epsilon2);
+			Tuple<Ga3b2> h3=h2  ; h3.Elementary_transformation(i3,epsilon3);
+			//if(S2_complexity(M->h)==S2_complexity(h1) && S2_complexity(h1)==S2_complexity(h2) && S2_complexity(h2)>S2_complexity(h3)){
+			if(S2_complexity(M->h)>S2_complexity(h3)){
+				M->Elementary_transformation(i1,epsilon1);
+				M->Elementary_transformation(i2,epsilon2);
+				M->Elementary_transformation(i3,epsilon3);
+				return true;
+			}
+		}
+	}
 	return false;
 }
 
@@ -97,6 +119,46 @@ bool OperationE(CR<Ga3b2>* M){
 
 /******************/
 
+void careful_restorations_for_almost_short_conjugates(CR<Ga3b2>* M,bool details){
+	if(details) cout<<"~~~careful_restorations_for_almost_short_conjugates M~~~\n";
+	if(details) cout<<"h = "<<M->h<<"\n";
+	if(details) cout<<"H = "<<M->H<<"\n";
+	for(;;){
+		pair<int,int> sg=M->Restoration(); // segment [l,r]
+		int l=sg.first,r=sg.second;
+
+		if(l==-1) break;
+
+		if(l+1==r && M->h.e[l-1]==M->h.e[r-1].inv()){
+			//cout<<"("<<M->h.e[l-1]<<","<<M->h.e[r-1]<<") ---> ";
+			Ga3b2 Q=get_Q_in_expression_2(M->h.e[l-1]);
+			for(int _=l;_<=r;_++){
+				M->h.e[_-1].conjugation(Q.inv());
+				M->H.e[_-1]->conjugation(Q.inv());
+			}
+			//cout<<"("<<M->h.e[l-1]<<","<<M->h.e[r-1]<<") \n";
+		}else{
+			//for(int _=l;_<=r;_++){
+				//if(_==l) cout<<"(";
+				//cout<<M->h.e[_-1];
+				//if(_<r) cout<<","; else cout<<") ---> ";
+			//}
+			while(OperationD(M,l,r-1)) continue;
+			//for(int _=l;_<=r;_++){
+			//	if(_==l) cout<<"(";
+			//	cout<<M->h.e[_-1];
+			//	if(_<r) cout<<","; else cout<<")\n";
+			//}
+		}
+
+		if(details) cout<<"--> "<<M->h<<"\n";
+		if(details) cout<<"    "<<M->H<<"\n";
+	}
+	if(details) cout<<"~~~~~~\n";
+}
+
+/******************/
+
 /*--an induction that--------------*/
 /*----transform (g1,...,gn) in Ga3b2 whose components are conjuagates of almost short elements--*/
 /*--into--*/
@@ -104,13 +166,12 @@ bool OperationE(CR<Ga3b2>* M){
 /*--s.t.--*/
 /*----each component of (h1,...,hm) is almost short--*/
 /*--return mp(h,F)--*/
-pair<Tuple<Ga3b2>,list<vector<int>>> almost_shorten_induction(Tuple<Ga3b2> g_input,bool details,string namestr){
+void almost_shorten_induction(Tuple<Ga3b2> g_input,bool details,string namestr){
 	cout<<"| +====start the almost_shorten_induction on "+namestr+"===\n";
 	cout<<"| | "<<namestr<<"="<<g_input<<"\n";
 
 	CR<Ga3b2> M;
 	Tuple<Ga3b2> g_non_inverse_free;
-	list<vector<int>> F;
 
 	M.init(g_input);
 	/***********/
@@ -127,58 +188,20 @@ pair<Tuple<Ga3b2>,list<vector<int>>> almost_shorten_induction(Tuple<Ga3b2> g_inp
 		if(OperationE(&M))               continue;
 		break;
 	}
-	for(int i=1;i<=M.h.len();i++) myassert(M.h.e[i-1].len()==0,"each component of the tuple after induction is 1");
 	/***********/
 	cout<<"| +----after the induction---\n";
 	cout<<"| | M.h="<<M.h<<"\n";
 	cout<<"| | M.H="<<M.H<<"\n";
-	cout<<"| +=======\n";
-
-	//careful_restorations(&M,false);
-
-	/*
-	g_non_inverse_free.clear();
-	F.clear();
-	while(find_pair(&M,&g_non_inverse_free,&F))   continue;
-	while(find_triple(&M,&g_non_inverse_free,&F)) continue;
-	*/
-
-	// Fron now on, each component of M.h is short;
-	//myassert(each_component_is_short(M.h),"fron now on, each component of M.h is short");
-
-	//F.insert(F.end(),M.F.begin(),M.F.end()); M.F.clear();
-
-	//cout<<"| | ===conclusion after shorten_induction===\n";
-	//cout<<"| | "<<namestr<<"_h="<<M.h<<"\n";
-	//cout<<"| | "<<namestr<<"_non_inverse_free="<<g_non_inverse_free<<"\n";
-
+	for(int i=1;i<=M.h.len();i++) myassert(M.h.e[i-1].len()==0,"each component of the tuple after induction is 1");
 	/***********/
-
-	// if(details) cout<<"| | ---check elementary transformations in F---\n";
-	// if(details) cout<<"| | F.size()="<<F.size()<<"\n";
-	// Tuple<Ga3b2> g=g_input;
-	// for(auto it:F){
-	// 	int i=it[2],epsilon=it[3];
-	// 	g.Elementary_transformation(i,epsilon);
-	// }
-	// myassert(g==bullet(M.h,g_non_inverse_free),"g==h dot g_non_inverse_free");
-	//cout<<"| +==="+namestr+" is transformed into  \""<<namestr<<"_h * "<<namestr<<"_non_inverse_free\"  by "<<F.size()<<" elementary transformations\n";
-
-	//myassert(each_component_is_short(M.h),"after the shorten_induction, each component must be short");
-	return make_pair(M.h,F);
+	
+	careful_restorations_for_almost_short_conjugates(&M,false);
+	
+	// Fron now on, each component of M.h is almost short;
+	myassert(each_component_is_almost_short(M.h),"fron now on, each component of M.h is almost short");
+	cout<<"| +----a tuple of almost short elements---\n";
+	cout<<"| | M.h="<<M.h<<"\n";
+	cout<<"| +=======\n";
 }
 
 /***************************/
-
-
-/*
-
-a^2b  a^2b  a^2ba^2baba  ba^2ba^2ba^2b  baba^2  a^2bab  a^2ba^2babababa
-
-a^2b  a^2b  a^2ba^2baba  ba^2ba^2ba^2b  baba^2  a^2bab  a^2ba^2babababa
-
-ba^2ba^2ba^2b  baba^2
-
-baba^2     aba^2b ba^2ba^2ba^2b baba^2=ababa
-
-*/

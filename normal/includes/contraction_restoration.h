@@ -57,7 +57,7 @@ struct CR{
 		F.push_back({2,l,r});
 	}
 
-	int Restoration(){
+	pair<int,int> Restoration(){
 		list<vector<int>> F2;
 		int l=-1,r=-1;
 		for(auto it:F){
@@ -69,7 +69,7 @@ struct CR{
 				F2.push_back(it);
 			}
 		}
-		if(l==-1 && r==-1) return -1;
+		if(l==-1 && r==-1) return make_pair(-1,-1);
 		else{
 			while(F.back()!=vector<int>{2,l,r}) F.pop_back();
 			F.pop_back();
@@ -107,7 +107,7 @@ struct CR{
 			H.e.insert(H.e.begin()+k-1,it);
 		}
 
-		return k;
+		return make_pair(k,k+(r-l));
 	}
 
 	void Apply(list<vector<int>> F0){
