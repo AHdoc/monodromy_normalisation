@@ -26,12 +26,39 @@ using namespace std;
 #include"test.cpp"
 
 
-int main(){
+int main(int argc, char *argv[]){
 	srand (time(NULL));
-	//test_Ga3b2();
-	//test_tuple();
-	//test_CR();
 
-	multi_test_normalize_short(false);
-	//multi_test_normalize_almost_short(false);
+	if(argc==1 || string(argv[1])=="-h"){
+		cout<<"Options:\n";
+		cout<<"  -h             Display this information.\n";
+		cout<<"\n";
+		cout<<"  -test\n";
+		cout<<"    -Ga3b2       Tests for Ga3b2.\n";
+		cout<<"    -Tuple       Tests for Tuple.\n";
+		cout<<"    -CR          Tests for CR.\n";
+		cout<<"\n";
+		cout<<"    -short       Tests for normalize_short.\n";
+		cout<<"    -almostshort Tests for normalize_almost_short.\n";
+	}
+	if(argc>=2){
+		if(string(argv[1])=="-test"){
+			if(argc>=3){
+				if(string(argv[2])=="-Ga3b2")
+					test_Ga3b2();
+				if(string(argv[2])=="-Tuple")
+					test_tuple();
+				if(string(argv[2])=="-CR")
+					test_CR();
+				
+				bool details=(argc>=4 && string(argv[3])=="true");
+				if(string(argv[2])=="-short"){
+					multi_test_normalize_short(details);
+				}
+				if(string(argv[2])=="-almostshort"){
+					multi_test_normalize_almost_short(details);
+				}
+			}
+		}
+	}
 }

@@ -77,22 +77,24 @@ void test_CR(){
 }
 
 Tuple<Ga3b2> test_normalize_short(int n,bool details){
-	cout<<"    - Step 0: generate a random tuple g=(g1,...,gn) of length n=pa+qa+nb+p+q="<<n<<" s.t.\n";
-	cout<<"        - pa of them are conjugates of a;\n";
-	cout<<"        - qa of them are conjugates of a^2;\n";
-	cout<<"        - nb of them are conjugates of b;\n";
-	cout<<"        - p of them are conjugates of aba;\n";
-	cout<<"        - q of them are conjugates of a^2ba^2.\n";
-	cout<<"    - Step 1: transform (g1,...,gn) into (h1,...,hm) * several pairs (x,x^{-1}) and triples (l,l,l) with l^3=1\n";
-	cout<<"        - where (h1,...,hm) is a tuple of short elements--\n";
-	cout<<"    - Step 2: transform/contract (h1,...,hm) into (k1,...,kl)\n";
-	cout<<"        - where (k1,...,kl) is an inverse-free tuple of short elements containing <=1 component equal to a/a^2/b\n";
-	cout<<"    - Step 3: contract/normalize (k1,...,kl)\n";
-	cout<<"        - into (s0,s2,s0,s2,s0,s2)^? * (t0,t2,t0,t2,t0,t2)^? * (s_i,t_i)^?\n";
-	cout<<"    - Step 4: write the resulting tuple as a desired concatenation\n";
-	cout<<"        - Step 4.1: restore the resulting tuple\n";
-	cout<<"        - Step 4.2: handle the exceptional part, which is a tuple of finite length\n";
-	cout<<"\n";
+	if(details){
+		cout<<"    - Step 0: generate a random tuple g=(g1,...,gn) of length n=pa+qa+nb+p+q="<<n<<" s.t.\n";
+		cout<<"        - pa of them are conjugates of a;\n";
+		cout<<"        - qa of them are conjugates of a^2;\n";
+		cout<<"        - nb of them are conjugates of b;\n";
+		cout<<"        - p of them are conjugates of aba;\n";
+		cout<<"        - q of them are conjugates of a^2ba^2.\n";
+		cout<<"    - Step 1: transform (g1,...,gn) into (h1,...,hm) * several pairs (x,x^{-1}) and triples (l,l,l) with l^3=1\n";
+		cout<<"        - where (h1,...,hm) is a tuple of short elements--\n";
+		cout<<"    - Step 2: transform/contract (h1,...,hm) into (k1,...,kl)\n";
+		cout<<"        - where (k1,...,kl) is an inverse-free tuple of short elements containing <=1 component equal to a/a^2/b\n";
+		cout<<"    - Step 3: contract/normalize (k1,...,kl)\n";
+		cout<<"        - into (s0,s2,s0,s2,s0,s2)^? * (t0,t2,t0,t2,t0,t2)^? * (s_i,t_i)^?\n";
+		cout<<"    - Step 4: write the resulting tuple as a desired concatenation\n";
+		cout<<"        - Step 4.1: restore the resulting tuple\n";
+		cout<<"        - Step 4.2: handle the exceptional part, which is a tuple of finite length\n";
+		cout<<"\n";
+	}
 
 	cout<<"+--------+\n";
 	cout<<"| Step 0 |\n";
@@ -124,7 +126,7 @@ Tuple<Ga3b2> test_normalize_short(int n,bool details){
 	cout<<"+--------+\n";
 	cout<<"| Step 4 |\n";
 	cout<<"+--------+\n";
-	CR<Ga3b2> M; M.init(g); M.Apply(F); careful_restorations(&M,true);
+	CR<Ga3b2> M; M.init(g); M.Apply(F); careful_restorations(&M,details);
 	auto ret4=sort_concatenation(M.h,details);
 	g_final=ret4.first;
 
@@ -152,9 +154,11 @@ void multi_test_normalize_short(bool details){
 		n=rand()%(nr-nl+1)+nl;
 		Tuple<Ga3b2> g_excep=test_normalize_short(n,details);
 		if(g_excep.len()>longest_exceptional_part.len()) longest_exceptional_part=g_excep;
+
+		cout<<"longest_exceptional_part = "<<longest_exceptional_part<<" of length "<<longest_exceptional_part.len()<<"\n";
 	}
 
-	cout<<"longest_exceptional_part = "<<longest_exceptional_part<<"\n";
+	cout<<"longest_exceptional_part = "<<longest_exceptional_part<<" of length "<<longest_exceptional_part.len()<<"\n";
 }
 
 /******************************/
